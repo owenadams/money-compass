@@ -2,6 +2,8 @@
 
 A mobile-friendly UK money comparison app for GitHub Pages. Includes savings, cash ISAs, investment ISA platforms, fund and ETF research examples, individual-share research examples, Premium Bonds and Lifetime ISAs. There are no account connections, trackers or financial transactions.
 
+Website: [owenadams.github.io/money-compass](https://owenadams.github.io/money-compass/)
+
 ## Local use
 
 Requires Node.js 24 and npm.
