@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assessment, estimateInterest, isStale, selectProducts, switchingComparison } from '../src/finance.js';
+import { assessment, estimateInterest, isStale, selectProducts, switchingComparison, productForFunding } from '../src/finance.js';
 import { catalogue } from '../src/catalogue.js';
 
 const now = new Date('2026-10-05T12:00:00Z');
@@ -57,4 +57,23 @@ test('switching comparisons only use verified unrestricted eligible savings, and
   assert.equal(comparison.gain, 150);
   assert.equal(switchingComparison(products, 10000, 5, now).gain, -50);
   assert.equal(switchingComparison(products, 10000, null, now).gain, null);
+});
+test('eligibility filters exclude unknowns, required apps and accounts, and unsupported ISA transfers', () => {
+  const filters = { amount: 10000, sort: 'rate', noApp: true, noOtherAccount: true };
+  const products = [{ ...account, appRequired: false, requiresAnotherAccount: false }, { ...account, id: 'app', appRequired: true }, { ...account, id: 'unknown', appRequired: null }];
+  assert.deepEqual(selectProducts(products, filters, now).map(product => product.id), ['test']);
+  const transfers = selectProducts(catalogue, { amount: 10000, funding: 'transfer' }, now);
+  assert.ok(transfers.length > 0);
+  assert.ok(transfers.every(product => product.category === 'Cash ISAs' && product.acceptsTransfers === true));
+  assert.ok(!transfers.some(product => product.id === 'hodge-fixed-isa'));
+});
+test('transfer-specific rates replace newbie rates without inheriting automatic verification', () => {
+  const product = { ...account, category: 'Cash ISAs', acceptsTransfers: true, transferRate: 3.6, termsReviewedAt: '2026-10-05', checkStatus: 'verified' };
+  const transfer = productForFunding(product, 'transfer');
+  assert.equal(transfer.rate, 3.6);
+  assert.equal(transfer.checkStatus, 'manual');
+  assert.equal(estimateInterest(transfer, 10000), 360);
+  assert.equal(productForFunding(product, 'new'), product);
+  assert.equal(estimateInterest(productForFunding({ ...product, acceptsTransfers: false }, 'transfer'), 10000), null);
+  assert.equal(estimateInterest(productForFunding({ ...product, acceptsTransfers: null }, 'transfer'), 10000), null);
 });

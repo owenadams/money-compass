@@ -15,8 +15,8 @@ export function estimateInterest(product, amount) {
   return amount * product.rate / 100;
 }
 
-export function switchingComparison(products, amount, currentRate, now = new Date()) {
-  const candidates = products.filter(product => product.category === 'Savings' && product.access === 'Easy access' && product.checkStatus === 'verified' && !product.termsChanged && !isStale(product.rateCheckedAt, now))
+export function switchingComparison(products, amount, currentRate, now = new Date(), category = 'Savings') {
+  const candidates = products.filter(product => product.category === category && product.access === 'Easy access' && product.checkStatus === 'verified' && !product.termsChanged && !isStale(product.rateCheckedAt, now))
     .map(product => ({ product, interest: estimateInterest(product, amount) }))
     .filter(candidate => candidate.interest !== null)
     .sort((first, second) => second.interest - first.interest);
@@ -36,11 +36,28 @@ export function assessment(product, amount, now = new Date()) {
   return { label: 'Worth comparing', tone: 'positive', reason: 'An easy-access option to compare, subject to eligibility and the provider’s current terms. Not a personal recommendation.' };
 }
 
+export function productForFunding(product, funding) {
+  if (funding !== 'transfer' || product.category !== 'Cash ISAs') return product;
+  if (product.acceptsTransfers !== true) return { ...product, rate: null, checkStatus: 'manual', checkMessage: product.acceptsTransfers === false ? 'This account does not accept ISA transfers.' : 'ISA transfer eligibility is unknown; check provider terms.' };
+  if (!Number.isFinite(product.transferRate)) return product;
+  return { ...product, rate: product.transferRate, checkStatus: 'manual', rateCheckedAt: product.termsReviewedAt, checkMessage: 'ISA transfer rate from dated terms; not automatically verified.', name: `${product.name} (ISA transfer rate)` };
+}
+
+export function matchesEligibility(product, filters) {
+  return (!filters.customer || product.customerEligibility === filters.customer)
+    && (!filters.noApp || product.appRequired === false)
+    && (!filters.noOtherAccount || product.requiresAnotherAccount === false)
+    && (!filters.funding || filters.funding !== 'transfer' || product.category === 'Cash ISAs' && product.acceptsTransfers === true)
+    && (!filters.unlimitedAccess || product.access === 'Easy access');
+}
+
 export function selectProducts(products, filters, now = new Date()) {
   return products.filter(product => (!filters.category || product.category === filters.category)
     && (!filters.access || product.access === filters.access)
     && (!filters.savedOnly || filters.saved.includes(product.id))
+    && matchesEligibility(product, filters)
     && (!filters.search || `${product.provider} ${product.name} ${product.category}`.toLowerCase().includes(filters.search.toLowerCase())))
+    .map(product => productForFunding(product, filters.funding))
     .sort((first, second) => {
       if (filters.sort === 'name') return first.provider.localeCompare(second.provider);
       const eligible = product => Number.isFinite(product.rate) && product.rateKind === 'AER' && filters.amount >= product.minimum && (product.maximum === null || filters.amount <= product.maximum);

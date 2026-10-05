@@ -1,5 +1,25 @@
 import { estimateInterest, isStale, switchingComparison } from '../src/finance.js';
 
+export function notificationDecision(market, { deployed = true, minimumGain = 50, amount = 10000, weeklySummary = false } = {}) {
+  if (!Number.isFinite(minimumGain) || minimumGain < 0 || !Number.isFinite(amount) || amount <= 0) throw new Error('Invalid notification threshold or comparison amount');
+  const run = market.history[0];
+  if (!deployed || !run) return { send: true, reason: 'Update or publication failed', improvements: [] };
+  const improvements = [];
+  for (const category of ['Savings', 'Cash ISAs']) {
+    const current = switchingComparison(run.verifiedOffers || market.products || [], amount, null, new Date(run.checkedAt), category);
+    const previous = switchingComparison(run.previousVerifiedOffers || [], amount, null, new Date(run.previousCheckedAt || run.checkedAt), category);
+    const gain = current && previous ? Math.round((current.interest - previous.interest) * 100) / 100 : 0;
+    if (current && previous && gain > 0 && gain >= minimumGain) {
+      const signature = `${category}:${current.product.id || current.product.provider}:${current.effectiveRate.toFixed(6)}:${amount}:${minimumGain}`;
+      if (!market.alertState?.sentSignatures?.includes(signature)) improvements.push({ category, provider: current.product.provider, name: current.product.name, before: previous.effectiveRate, after: current.effectiveRate, gain, signature });
+    }
+  }
+  if (improvements.length) return { send: true, reason: 'Worthwhile verified improvement', improvements };
+  if (run.newWarnings?.length) return { send: true, reason: 'Previously verified offers now need checking', improvements };
+  if (!run.previousVerifiedOffers?.length) return { send: true, reason: 'Initial verified comparison baseline', improvements };
+  return { send: weeklySummary, reason: weeklySummary ? 'Weekly summary requested' : 'No worthwhile verified improvement; staying quiet', improvements };
+}
+
 export function updateMessage(market, { pageUrl, runUrl, deployed = true, localTest = false, amount = 10000, currentRate = null, now = new Date() } = {}) {
   const run = market.history[0];
   const title = localTest ? 'Money Compass: local test (not published yet)' : deployed ? 'Money Compass: weekly checks published' : 'Money Compass: update or publication failed';

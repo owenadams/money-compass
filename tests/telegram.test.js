@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sendTelegram, updateMessage } from '../scripts/telegram.js';
+import { notificationDecision, sendTelegram, updateMessage } from '../scripts/telegram.js';
 
 const market = { history: [{ checkedAt: '2026-10-05T08:00:00Z', rateChecks: 5, failures: 2, manualChecks: 17, changes: [] }] };
 const now = new Date('2026-10-05T12:00:00Z');
@@ -46,4 +46,23 @@ test('limited balance offers explain their cap instead of quoting interest on th
   const message = updateMessage({ ...market, products: [{ ...savings, maximum: 3000 }] }, { now });
   assert.match(message, /maximum £3,000; the whole example balance does not fit/);
   assert.doesNotMatch(message, /£450 interest/);
+});
+test('unchanged weeks are quiet and a verified £50 improvement triggers an alert', () => {
+  const run = { ...market.history[0], previousCheckedAt: '2026-10-05', previousVerifiedOffers: [savings], verifiedOffers: [savings], newWarnings: [] };
+  assert.equal(notificationDecision({ history: [run] }).send, false);
+  assert.equal(notificationDecision({ history: [{ ...run, verifiedOffers: [{ ...savings, rate: 4.9 }] }] }).send, false);
+  const improved = notificationDecision({ history: [{ ...run, verifiedOffers: [{ ...savings, rate: 5 }] }] });
+  assert.equal(improved.send, true);
+  assert.equal(improved.improvements[0].gain, 50);
+  const delivered = { history: [{ ...run, verifiedOffers: [{ ...savings, rate: 5 }] }], alertState: { sentSignatures: [improved.improvements[0].signature] } };
+  assert.equal(notificationDecision(delivered).send, false);
+  assert.equal(notificationDecision({ history: [{ ...run, previousVerifiedOffers: [{ ...savings, rate: 4.55 }], verifiedOffers: [{ ...savings, rate: 5.05 }] }] }).send, true);
+  assert.equal(notificationDecision({ history: [run] }, { weeklySummary: true }).send, true);
+});
+test('stale rates and repeated failures do not produce improvement alerts; new warnings and deployment failures do', () => {
+  const run = { ...market.history[0], previousCheckedAt: '2026-10-05', previousVerifiedOffers: [savings], verifiedOffers: [{ ...savings, rate: 9, checkStatus: 'failed' }], newWarnings: [] };
+  assert.equal(notificationDecision({ history: [run] }).send, false);
+  assert.equal(notificationDecision({ history: [{ ...run, newWarnings: [{ provider: 'Example Bank' }] }] }).send, true);
+  assert.equal(notificationDecision({ history: [run] }, { deployed: false }).send, true);
+  assert.throws(() => notificationDecision({ history: [run] }, { minimumGain: NaN }));
 });

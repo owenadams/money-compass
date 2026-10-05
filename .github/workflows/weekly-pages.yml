@@ -20,6 +20,9 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      ALERT_MIN_GAIN: ${{ vars.ALERT_MIN_GAIN || '50' }}
+      ALERT_WEEKLY_SUMMARY: ${{ vars.ALERT_WEEKLY_SUMMARY || 'false' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -59,3 +62,13 @@ jobs:
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           DEPLOY_STATUS: ${{ steps.deployment.outcome == 'success' && 'success' || 'failure' }}
         run: npm run notify
+      - name: Persist successful notification state
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/market.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Save delivered opportunity alerts [skip ci]"
+            git push
+          fi

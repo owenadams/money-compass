@@ -16,7 +16,21 @@ The amount recalculates one-year cash interest and a total balance illustration 
 
 Telegram uses an explicitly illustrative £10,000, as requested. Messages include actual verified rates and one-year interest, separately labelled unverified listed offers, and a conditional switching threshold from verified unrestricted savings only. It cannot say whether you personally should move without knowing your actual current rate, eligibility, tax and exit costs.
 
-## Local use
+## Eligibility, Comparison and Alerts
+
+Customer-offer filters distinguish explicitly new-customer offers from accounts with no new-customer restriction stated. The latter is not a guarantee that an existing customer qualifies. App, additional-account and ISA-transfer filters exclude unknown eligibility when a definite answer is required. Unrestricted withdrawals mean no stated withdrawal-count or notice restriction, not guaranteed same-day payment.
+
+ISA transfer mode uses lower transfer rates where the source specifies them (for example Plum and Trading 212). Those figures remain separately dated manual snapshots even when the new-money headline rate is automatically checked. Unsupported or unknown transfer eligibility has no transfer return estimate, including in the side-by-side view.
+
+Choose two or three comparison checkboxes, then open Side-by-side. Selections persist on the device, independently of the saved shortlist. The comparison includes rates, estimates, access, customer and app restrictions, transfers, protection, fees, provider summaries and source dates. Its table scrolls within the page on phones.
+
+Telegram defaults to a £50 annual-interest improvement on the illustrative £10,000, comparing verified easy-access savings and cash ISAs separately with the previous weekly best. The baseline stays stable through midweek deployments. Unchanged weeks and already-delivered opportunities are suppressed. New warnings on previously verified accounts and failed deployments still alert; existing blocked-source warnings do not repeat every week. Notification state is saved only after Telegram confirms delivery. This is not a comparison with your actual account and is not personal switching advice.
+
+Change the non-secret repository Actions variable `ALERT_MIN_GAIN` to adjust the threshold. Set `ALERT_WEEKLY_SUMMARY` to `true` to restore a routine summary. The default is `false`, as requested. Private bot credentials remain Actions secrets. Monday is the UTC weekly boundary.
+
+Rate-independent source fingerprints exclude only percentages numerically equal to the independently extracted headline rate. Other changed rates or terms still trigger review, and existing review warnings are not automatically cleared.
+
+## Local Commands
 
 Requires Node.js 24 and npm.
 
@@ -31,7 +45,7 @@ Production build: `npm run build`. Home-screen icons are already included; regen
 ## What is and is not updated
 
 - `npm run update` checks the selected provider pages, saves dated results to `public/data/market.json`, and retains 12 check runs.
-- Product-specific automated rate adapters currently cover Cynergy easy access, Cahoot Sunny Day Saver, NS&I Direct Saver, NS&I Direct ISA and Premium Bonds. Other rates and investment fees are manually sourced snapshots from the linked comparison guides, read on 5 October 2026.
+- Product-specific automated rate adapters currently cover Cynergy easy access, Cahoot Sunny Day Saver, NS&I Direct Saver, NS&I Direct ISA, Premium Bonds, Oxbury Easy Access Autumn, Plum Cash ISA and Shawbrook one-year fixed Cash ISA. These eight adapters reject missing or ambiguous rates. Other rates and investment fees remain manually sourced snapshots from linked comparison guides.
 - Reviews are original Money Compass feature summaries, not independently audited reviews or scraped customer scores. Customer reviews and editorial/official sources are linked. These summaries and eligibility/access conditions retain their separate manual-review dates.
 - A reachable page never refreshes a rate date. Failed, ambiguous and blocked checks preserve the old rate and original date. Rates older than eight days are marked out of date, never prioritised as verified, and cannot drive Telegram switching guidance. The listed-rate sort still shows their numerical rate with its warning.
 - A changed source fingerprint flags terms for review and removes the cash shortlist assessment. Page text can change for unrelated reasons, so this warning is intentionally conservative. To approve a reviewed change, update the relevant entry and its `termsReviewedAt` in `src/catalogue.js`, then rerun the updater. Do not just clear flags without checking terms.

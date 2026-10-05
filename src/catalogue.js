@@ -7,6 +7,14 @@ const investmentProtection = 'No protection against market losses. FSCS investme
 
 function product(id, provider, name, category, options) {
   const isa = category.includes('ISAs');
+  const adapter = { 'oxbury-saver': 'oxbury', 'shawbrook-isa': 'shawbrook-isa', 'plum-isa': 'plum-isa' }[id];
+  if (adapter) options = { ...options, adapter };
+  const newCustomers = ['zopa', 'chase-saver', 'oxbury-saver', 'saga-saver', 'monument-saver', 'plum-isa', 'moneybox-isa', 'trading-cash-isa'];
+  const noNewRestriction = ['cynergy', 'cahoot', 'nsandi-saver', 'nsandi-isa', 'premium', 'charter-isa', 'shawbrook-isa', 'union-one', 'close-two', 'tesco-fixed', 'tesco-cash-isa', 'natwest-fixed-isa', 'oaknorth-fixed-isa', 'hodge-fixed-isa'];
+  const appRequired = ['zopa', 'chase-saver', 'starling-saver', 'monument-saver', 'plum-isa', 'moneybox-isa', 'oxbury-saver'];
+  const noAppRequired = ['cynergy', 'cahoot', 'union-one', 'close-two', 'nsandi-saver', 'nsandi-isa', 'premium', 'postoffice-saver', 'saga-saver', 'tesco-fixed', 'tesco-cash-isa', 'charter-isa', 'shawbrook-isa', 'boi-cash-isa', 'postoffice-cash-isa', 'leeds-cash-isa', 'natwest-fixed-isa', 'hodge-fixed-isa', 'oaknorth-fixed-isa', 'trading-cash-isa'];
+  const transfersAccepted = ['plum-isa', 'moneybox-isa', 'charter-isa', 'shawbrook-isa', 'trading-cash-isa', 'boi-cash-isa', 'postoffice-cash-isa', 'leeds-cash-isa', 'natwest-fixed-isa', 'oaknorth-fixed-isa'];
+  options = { customerEligibility: newCustomers.includes(id) ? 'new' : noNewRestriction.includes(id) ? 'any' : 'unknown', appRequired: appRequired.includes(id) ? true : noAppRequired.includes(id) ? false : null, requiresAnotherAccount: ['zopa', 'chase-saver', 'starling-saver'].includes(id) ? true : newCustomers.includes(id) || noNewRestriction.includes(id) ? false : null, acceptsTransfers: transfersAccepted.includes(id) ? true : id === 'hodge-fixed-isa' ? false : null, transferRate: { 'plum-isa': 3.75, 'trading-cash-isa': 3.6 }[id] ?? null, ...options };
   const isaOptions = isa ? { ...options, maximum: null, annualContributionLimit: category === 'Lifetime ISAs' ? 4000 : 20000 } : options;
   return { id, provider, name, category, risk: 'Cash', rate: null, rateKind: 'AER', minimum: 1, maximum: null, bonusMonths: 12, access: 'Easy access', protection: cashProtection, rateCheckedAt: checked, termsReviewedAt: checked, checkStatus: 'manual', fees: 'No account fee noted in the source; confirm current terms.', reviewUrl: `https://uk.trustpilot.com/search?query=${encodeURIComponent(provider)}`, editorialUrl: category === 'Cash ISAs' ? isaGuide : savingsGuide, ...isaOptions };
 }
