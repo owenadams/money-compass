@@ -1,7 +1,7 @@
 import './app.css';
 import { createIcons, Compass, ArrowUpRight, Bookmark, Search, ShieldCheck, Clock3, CircleHelp, ChevronDown, Wallet, TrendingUp, RefreshCw, Check, Bell } from 'lucide';
 import { initialMarket } from './catalogue.js';
-import { categories, assessment, estimateInterest, isStale, selectProducts } from './finance.js';
+import { categories, assessment, estimateInterest, isStale, selectProducts, switchingComparison } from './finance.js';
 
 const iconSet = { Compass, ArrowUpRight, Bookmark, Search, ShieldCheck, Clock3, CircleHelp, ChevronDown, Wallet, TrendingUp, RefreshCw, Check, Bell };
 const app = document.querySelector('#app');
@@ -14,12 +14,15 @@ let market = initialMarket;
 let dataWarning = '';
 let saved = [];
 let amount = 10000;
+let currentRate = null;
 let toastTimer;
 try {
   const storedSaved = JSON.parse(localStorage.getItem('money-compass-saved') || '[]');
   saved = Array.isArray(storedSaved) ? storedSaved.filter(value => typeof value === 'string') : [];
   const storedAmount = Number(localStorage.getItem('money-compass-amount'));
   if (storedAmount > 0 && storedAmount <= 10000000 && Number.isFinite(storedAmount)) amount = storedAmount;
+  const storedRate = localStorage.getItem('money-compass-current-rate');
+  if (storedRate !== null && storedRate !== '' && Number.isFinite(Number(storedRate)) && Number(storedRate) >= 0 && Number(storedRate) <= 100) currentRate = Number(storedRate);
 } catch { dataWarning = 'Device storage is unavailable. Your shortlist will not persist.'; }
 let view = 'compare';
 const filters = { category: 'Savings', access: '', search: '', sort: 'rate' };
@@ -43,21 +46,22 @@ function productRow(product) {
     <div class="provider"><div class="provider-logo"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128" alt="" loading="lazy" referrerpolicy="no-referrer" /><span>${escape(product.provider.slice(0, 2))}</span></div><div><h3>${escape(product.provider)}</h3><p>${escape(product.name)}</p><span class="source-status ${current ? '' : 'warning-text'}">${escape(sourceStatus(product))}</span></div></div>
     <div class="rate"><strong>${escape(metric)}</strong><span>${product.rateKind === 'AER' ? 'AER · ' + (product.access === 'Fixed term' ? 'fixed' : 'variable') : product.rateKind === 'Prize fund' ? 'Prize fund · not your return' : 'No guaranteed return'}</span></div>
     <div class="access"><span class="access-label">${icon(product.risk === 'Investment' ? 'TrendingUp' : 'Clock3')}${escape(product.access)}</span><small>${product.risk === 'Investment' ? 'Capital at risk' : `${money(product.minimum)} min · ${product.maximum === null ? 'max: check terms' : `${money(product.maximum)} max`}`}</small></div>
-    <div class="verdict"><span class="badge ${verdict.tone}">${escape(verdict.label)}</span><small>${current && estimated !== null ? `${money(estimated)} interest illustration / year` : 'Read conditions below'}</small></div>
+    <div class="verdict"><span class="badge ${verdict.tone}">${escape(verdict.label)}</span><small>${product.bonusMonths < 12 ? `${product.bonusMonths}-month bonus · then ${product.baseRate}%` : 'Check eligibility & conditions'}</small></div>
     <button class="icon-button save-button ${isSaved ? 'saved' : ''}" data-save="${escape(product.id)}" aria-label="${isSaved ? 'Remove' : 'Save'} ${escape(product.provider)} ${escape(product.name)}" aria-pressed="${isSaved}" title="${isSaved ? 'Remove from shortlist' : 'Save to shortlist'}">${icon(isSaved ? 'Check' : 'Bookmark')}</button>
-  </div><details><summary>Details & provider review ${icon('ChevronDown')}</summary><div class="product-details">
+  </div><div class="return-line">${estimated === null ? `<span>${product.risk === 'Investment' ? `${money(amount)} invested · return is not guaranteed` : product.rateKind === 'Prize fund' ? 'Prize winnings cannot be predicted from the fund rate' : amount < product.minimum ? `Estimate unavailable: minimum ${money(product.minimum)}` : product.maximum !== null && amount > product.maximum ? `Estimate unavailable: ${money(product.maximum)} balance cap` : 'Estimate unavailable: check rate and conditions'}</span>` : `<span><strong>${money(estimated)}</strong> estimated interest in 1 year</span><span>Total <strong>${money(amount + estimated)}</strong></span>${currentRate === null ? '' : `<span class="${estimated - amount * currentRate / 100 >= 0 ? 'gain-positive' : 'warning-text'}">${money(Math.abs(estimated - amount * currentRate / 100))} ${estimated - amount * currentRate / 100 >= 0 ? 'more' : 'less'} than your current rate</span>`}<small>${current && product.checkStatus === 'verified' ? 'Rate verified; conditions apply' : 'Dated snapshot — verify rate & terms'} · before tax${product.bonusMonths < 12 ? ' · bonus-adjusted' : ''}</small>`}</div><details><summary>Details & provider review ${icon('ChevronDown')}</summary><div class="product-details">
     <section><h4>Access & conditions</h4><p>${escape(product.terms)}</p>${product.annualContributionLimit ? `<p class="fine-print">2026/27 contribution limit: ${money(product.annualContributionLimit)}${product.category === 'Lifetime ISAs' ? ', within the overall ISA allowance' : ' shared across ISA types'}. This is not a maximum account balance. Check eligibility and current rules.</p>` : ''}<p class="detail-label">Protection</p><p>${escape(product.protection)}</p>${external(product.sourceUrl, 'Provider & current terms')}${external('https://www.fscs.org.uk/check/check-your-money-is-protected/', 'Check protection')}</section>
     <section><h4>Provider review</h4><p>${escape(product.summary)}</p><p class="review-date">Money Compass summary · reviewed ${date(product.termsReviewedAt)}${product.termsChanged ? ' · source changed since review' : ''}</p>${external(product.reviewUrl, 'Find current customer reviews')}${external(product.editorialUrl, 'Independent guide / official rules')}<p class="fine-print">Customer scores are not verified here. Reviews can be biased and do not establish financial safety. A guide link is not a product endorsement.</p></section>
-    <section><h4>Our assessment</h4><p>${escape(verdict.reason)}</p><p class="detail-label">Fees</p><p>${escape(product.fees)}</p><p class="review-date">${product.rate === null ? 'Terms' : 'Rate'} snapshot: ${date(product.rate === null ? product.termsReviewedAt : product.rateCheckedAt)}<br>Latest source attempt: ${date(product.lastAttemptAt)}<br>${escape(product.checkMessage || 'Initial sourced snapshot; verify before applying.')}</p>${estimated !== null && current ? `<p class="fine-print">Illustration assumes ${money(amount)} stays deposited for a year, AER stays unchanged and all conditions are met. Before tax; not a promise.</p>` : ''}</section>
+    <section><h4>Our assessment</h4><p>${escape(verdict.reason)}</p><p class="detail-label">Fees</p><p>${escape(product.fees)}</p><p class="review-date">${product.rate === null ? 'Terms' : 'Rate'} snapshot: ${date(product.rate === null ? product.termsReviewedAt : product.rateCheckedAt)}<br>Latest source attempt: ${date(product.lastAttemptAt)}<br>${escape(product.checkMessage || 'Initial sourced snapshot; verify before applying.')}</p>${estimated !== null ? `<p class="fine-print">Illustration assumes ${money(amount)} stays deposited for a year and all conditions are met. Published rates stay unchanged except a known bonus expiry; short bonuses use the published follow-on rate. Before tax, fees and exit penalties; not a promise. Paid-away interest is included in the total but may not remain in the account.</p>` : ''}</section>
   </div></details></article>`;
 }
 
 function comparisonPage() {
   const shortlist = view === 'shortlist';
-  return `<div class="section-heading"><div><p class="eyebrow">${shortlist ? 'YOUR RESEARCH' : 'UK MONEY OPTIONS'}</p><h1>${shortlist ? 'Your shortlist' : 'Find a place for your money'}</h1><p>${shortlist ? 'Saved on this device. Compare the conditions before choosing.' : 'Compare the rate. Know the rules. Check the provider.'}</p></div><label class="amount-field">Comparison balance <div><span>£</span><input id="amount" type="number" min="1" max="10000000" step="1" value="${amount}" aria-label="Comparison balance in pounds" /></div></label></div>
-  ${shortlist ? '' : `<div class="money-paths"><div>${icon('Wallet')}<div><h2>Within reach</h2><p>Cash for unexpected bills and shorter-term plans.</p></div><span>Access comes first</span></div><div>${icon('TrendingUp')}<div><h2>Room to grow</h2><p>Investments for money you can leave for 5+ years.</p></div><span>Returns are not guaranteed</span></div></div>`}
+  return `<div class="section-heading"><div><p class="eyebrow">${shortlist ? 'YOUR RESEARCH' : 'UK MONEY OPTIONS'}</p><h1>${shortlist ? 'Your shortlist' : 'Find a place for your money'}</h1><p>${shortlist ? 'Saved on this device. Compare the conditions before choosing.' : 'Compare the rate. Know the rules. Check the provider.'}</p></div><div class="calculator-inputs"><label class="amount-field">Amount to compare <div><span>£</span><input id="amount" type="number" min="1" max="10000000" step="1" value="${amount}" aria-label="Comparison balance in pounds" /></div></label><label class="current-rate-field">Your current AER (optional)<div><input id="current-rate" type="number" min="0" max="100" step="0.01" value="${currentRate ?? ''}" placeholder="e.g. 3.00" aria-label="Your current annual savings rate" /><span>%</span></div></label></div></div>
+  ${shortlist ? '' : `<div class="money-paths"><button data-path="cash" aria-pressed="${filters.category === 'Savings' && filters.access === 'Easy access'}">${icon('Wallet')}<div><h2>Within reach</h2><p>Cash for unexpected bills and shorter-term plans.</p><span>Compare easy-access savings ${icon('ArrowUpRight')}</span></div></button><button data-path="invest" aria-pressed="${filters.category === 'Stocks & shares ISAs'}">${icon('TrendingUp')}<div><h2>Room to grow</h2><p>Investments for money you can leave for 5+ years.</p><span>Compare investment ISAs ${icon('ArrowUpRight')}</span></div></button></div>`}
+  <div id="return-summary" class="return-summary" aria-live="polite"></div>
   <div class="category-tabs" role="tablist" aria-label="Money categories">${(shortlist ? ['All saved', ...categories] : categories).map(category => `<button role="tab" data-category="${escape(category)}" aria-selected="${filters.category === category}" class="${filters.category === category ? 'active' : ''}">${escape(category)}</button>`).join('')}</div>
-  <div class="filter-bar"><label class="search-field">${icon('Search')}<input id="search" type="search" placeholder="Search a provider or account" value="${escape(filters.search)}" aria-label="Search providers and accounts" /></label><label>Access<select id="access"><option value="">All access types</option>${['Easy access', 'Limited access', 'Notice', 'Fixed term', 'Sell investments', 'Restricted purpose'].map(access => `<option ${filters.access === access ? 'selected' : ''}>${escape(access)}</option>`).join('')}</select></label><label>Sort by<select id="sort"><option value="rate" ${filters.sort === 'rate' ? 'selected' : ''}>Current eligible AER</option><option value="name" ${filters.sort === 'name' ? 'selected' : ''}>Provider A–Z</option></select></label></div>
+  <div class="filter-bar"><label class="search-field">${icon('Search')}<input id="search" type="search" placeholder="Search a provider or account" value="${escape(filters.search)}" aria-label="Search providers and accounts" /></label><label>Access<select id="access"><option value="">All access types</option>${['Easy access', 'Limited access', 'Notice', 'Fixed term', 'Sell investments', 'Restricted purpose'].map(access => `<option ${filters.access === access ? 'selected' : ''}>${escape(access)}</option>`).join('')}</select></label><label>Sort by<select id="sort"><option value="rate" ${filters.sort === 'rate' ? 'selected' : ''}>Highest listed eligible AER</option><option value="verified" ${filters.sort === 'verified' ? 'selected' : ''}>Recently verified first</option><option value="name" ${filters.sort === 'name' ? 'selected' : ''}>Provider A–Z</option></select></label></div>
   <div class="comparison-intro"><span id="result-count"></span><span>Selected options, not the whole market ${icon('CircleHelp')}</span></div>
   <div class="table-labels"><span>PROVIDER / ACCOUNT</span><span>RATE / RETURN</span><span>GETTING YOUR MONEY</span><span>ASSESSMENT</span><span></span></div><div id="results"></div>
   <div class="source-note">${icon('ShieldCheck')}<p>Cash and investments are different. FSCS deposit protection is up to £120,000 per eligible person, per authorised institution, not per account. It does not cover investment market losses. ${external('https://www.fscs.org.uk/what-we-cover/', 'FSCS rules')}</p></div>`;
@@ -89,6 +93,10 @@ function renderResults() {
   if (!results) return;
   const products = selectProducts(market.products, { ...filters, category: filters.category === 'All saved' ? '' : filters.category, amount, saved, savedOnly: view === 'shortlist' });
   document.querySelector('#result-count').textContent = `${products.length} ${products.length === 1 ? 'option' : 'options'} · ${money(amount)} comparison`;
+  const best = products.map(product => ({ product, interest: estimateInterest(product, amount) })).filter(item => item.interest !== null).sort((first, second) => second.interest - first.interest)[0];
+  const comparison = switchingComparison(market.products, amount, currentRate);
+  const summary = document.querySelector('#return-summary');
+  summary.innerHTML = best ? `<div><span>Highest listed 1-year estimate</span><strong>${money(best.interest)} interest</strong><p>${escape(best.product.provider)} · total ${money(amount + best.interest)}</p></div><div><span>Against your current rate</span><strong>${currentRate === null ? 'Add your AER above' : `${money(Math.abs(best.interest - amount * currentRate / 100))} ${best.interest >= amount * currentRate / 100 ? 'more' : 'less'}`}</strong><p>Before tax, fees and penalties. Listed rates may need verification.</p></div>${comparison && currentRate !== null && filters.category === 'Savings' ? `<p class="switch-note">${comparison.gain > 0 ? `${escape(comparison.product.provider)} has a recently verified easy-access rate that could add ${money(comparison.gain)} a year versus your ${currentRate}% AER.` : 'No higher recently verified easy-access savings return found for this amount and current rate.'} Check eligibility, protection and exit costs before moving money.</p>` : ''}` : `<div><span>${money(amount)} comparison</span><strong>${products.some(product => product.risk === 'Investment') ? 'Investment returns are not guaranteed' : 'No eligible fixed-interest estimate'}</strong><p>${products.some(product => product.risk === 'Investment') ? 'Market prices can rise or fall; a savings AER cannot predict investment returns.' : 'Check deposit limits, rate availability and product conditions.'}</p></div>`;
   results.innerHTML = products.length ? products.map(productRow).join('') : `<div class="empty-state">${icon('Bookmark')}<h2>${view === 'shortlist' ? 'No saved matches' : 'No matching options'}</h2><p>${view === 'shortlist' ? 'Save an option from Compare to add it here, or change your filters.' : 'Try a different category, access type or provider name.'}</p><button data-clear class="secondary-button">Clear filters</button></div>`;
   refreshIcons();
 }
@@ -111,13 +119,14 @@ function setView(next) {
 }
 
 function persist() {
-  try { localStorage.setItem('money-compass-saved', JSON.stringify(saved)); localStorage.setItem('money-compass-amount', String(amount)); }
+  try { localStorage.setItem('money-compass-saved', JSON.stringify(saved)); localStorage.setItem('money-compass-amount', String(amount)); localStorage.setItem('money-compass-current-rate', currentRate === null ? '' : String(currentRate)); }
   catch { dataWarning = 'Device storage is unavailable. Changes will not persist after closing.'; }
 }
 app.addEventListener('click', event => {
   const button = event.target.closest('button');
   if (!button) return;
   if (button.dataset.view) { location.hash = button.dataset.view; return; }
+  if (button.dataset.path) { filters.category = button.dataset.path === 'cash' ? 'Savings' : 'Stocks & shares ISAs'; filters.access = button.dataset.path === 'cash' ? 'Easy access' : ''; filters.search = ''; render(); return; }
   if (button.dataset.category) { filters.category = button.dataset.category; filters.access = ''; render(); return; }
   if (button.hasAttribute('data-clear')) { filters.search = ''; filters.access = ''; render(); return; }
   if (button.dataset.save) {
@@ -136,7 +145,11 @@ app.addEventListener('click', event => {
   }
 });
 app.addEventListener('error', event => { if (event.target instanceof HTMLImageElement) event.target.hidden = true; }, true);
-app.addEventListener('input', event => { if (event.target.id === 'search') { filters.search = event.target.value; renderResults(); } });
+app.addEventListener('input', event => {
+  if (event.target.id === 'search') { filters.search = event.target.value; renderResults(); }
+  if (event.target.id === 'amount' && event.target.checkValidity() && Number.isFinite(event.target.valueAsNumber)) { amount = event.target.valueAsNumber; persist(); renderResults(); }
+  if (event.target.id === 'current-rate' && event.target.checkValidity()) { currentRate = event.target.value === '' ? null : event.target.valueAsNumber; persist(); renderResults(); }
+});
 app.addEventListener('change', event => {
   if (event.target.id === 'access') filters.access = event.target.value;
   if (event.target.id === 'sort') filters.sort = event.target.value;
@@ -156,7 +169,7 @@ async function loadMarket() {
     if (!response.ok) throw new Error('Data unavailable');
     const data = await response.json();
     if (data.schemaVersion !== 1 || !Array.isArray(data.products) || !Array.isArray(data.history)) throw new Error('Invalid dataset');
-    market = data;
+    market = { ...data, products: initialMarket.products.map(definition => ({ ...definition, ...data.products.find(product => product.id === definition.id) })) };
   } catch { dataWarning = 'Latest data could not be loaded. Showing bundled, dated snapshots; verify current rates directly.'; }
   render();
 }

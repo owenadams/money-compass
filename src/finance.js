@@ -6,8 +6,24 @@ export function isStale(date, now = new Date()) {
 }
 
 export function estimateInterest(product, amount) {
-  if (!Number.isFinite(product.rate) || product.rateKind !== 'AER' || amount < product.minimum || (product.maximum !== null && amount > product.maximum) || product.bonusMonths < 12) return null;
+  if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(product.rate) || product.rateKind !== 'AER' || amount < product.minimum || (product.maximum !== null && amount > product.maximum)) return null;
+  if (product.bonusMonths < 12) {
+    if (!Number.isFinite(product.baseRate) || product.baseRate < 0 || product.bonusMonths < 0) return null;
+    const bonusYears = product.bonusMonths / 12;
+    return amount * ((1 + product.rate / 100) ** bonusYears * (1 + product.baseRate / 100) ** (1 - bonusYears) - 1);
+  }
   return amount * product.rate / 100;
+}
+
+export function switchingComparison(products, amount, currentRate, now = new Date()) {
+  const candidates = products.filter(product => product.category === 'Savings' && product.access === 'Easy access' && product.checkStatus === 'verified' && !product.termsChanged && !isStale(product.rateCheckedAt, now))
+    .map(product => ({ product, interest: estimateInterest(product, amount) }))
+    .filter(candidate => candidate.interest !== null)
+    .sort((first, second) => second.interest - first.interest);
+  if (!candidates.length) return null;
+  const best = candidates[0];
+  const baseline = Number.isFinite(currentRate) && currentRate >= 0 && currentRate <= 100 ? amount * currentRate / 100 : null;
+  return { ...best, closingBalance: amount + best.interest, effectiveRate: best.interest / amount * 100, gain: baseline === null ? null : best.interest - baseline };
 }
 
 export function assessment(product, amount, now = new Date()) {
@@ -27,7 +43,10 @@ export function selectProducts(products, filters, now = new Date()) {
     && (!filters.search || `${product.provider} ${product.name} ${product.category}`.toLowerCase().includes(filters.search.toLowerCase())))
     .sort((first, second) => {
       if (filters.sort === 'name') return first.provider.localeCompare(second.provider);
-      const validRate = product => !isStale(product.rateCheckedAt, now) && product.checkStatus !== 'failed' && !product.termsChanged && product.rateKind === 'AER' && filters.amount >= product.minimum && (product.maximum === null || filters.amount <= product.maximum) ? product.rate : -1;
-      return validRate(second) - validRate(first) || first.provider.localeCompare(second.provider);
+      const eligible = product => Number.isFinite(product.rate) && product.rateKind === 'AER' && filters.amount >= product.minimum && (product.maximum === null || filters.amount <= product.maximum);
+      const verified = product => eligible(product) && product.checkStatus === 'verified' && !isStale(product.rateCheckedAt, now) && !product.termsChanged;
+      if (filters.sort === 'verified' && verified(first) !== verified(second)) return Number(verified(second)) - Number(verified(first));
+      if (eligible(first) !== eligible(second)) return Number(eligible(second)) - Number(eligible(first));
+      return (Number.isFinite(second.rate) ? second.rate : -1) - (Number.isFinite(first.rate) ? first.rate : -1) || first.provider.localeCompare(second.provider);
     });
 }
