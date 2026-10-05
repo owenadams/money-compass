@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-  "lastSuccessfulRateCheckAt": "2026-10-05T09:19:32.930Z",
+  "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+  "lastSuccessfulRateCheckAt": "2026-10-05T09:21:48.055Z",
   "products": [
     {
       "id": "cynergy",
@@ -16,7 +16,7 @@
       "bonusMonths": 12,
       "access": "Easy access",
       "protection": "Eligible deposits: FSCS up to £120,000 per person, per authorised institution. Shared licences count together; verify the named bank before depositing.",
-      "rateCheckedAt": "2026-10-05T09:19:32.930Z",
+      "rateCheckedAt": "2026-10-05T09:21:48.055Z",
       "termsReviewedAt": "2026-10-05",
       "checkStatus": "verified",
       "fees": "No account fee noted in the source; confirm current terms.",
@@ -26,8 +26,8 @@
       "adapter": "cynergy",
       "terms": "Variable rate includes a 12-month bonus. Unlimited withdrawals; online management. Check the current issue and bonus before opening.",
       "summary": "An online savings bank. Worth comparing for unrestricted access, but the introductory bonus needs a calendar reminder.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "7635151ee1fd9e3901eb75f865b05d45c10f4df30fe120cd16520d3e4af9959d",
       "termsChanged": false,
       "checkMessage": "Rate read from a product-specific section; terms remain separately dated."
@@ -45,7 +45,7 @@
       "bonusMonths": 12,
       "access": "Easy access",
       "protection": "Eligible deposits: FSCS up to £120,000 per person, per authorised institution. Shared licences count together; verify the named bank before depositing.",
-      "rateCheckedAt": "2026-10-05T09:19:32.930Z",
+      "rateCheckedAt": "2026-10-05T09:21:48.055Z",
       "termsReviewedAt": "2026-10-05",
       "checkStatus": "verified",
       "fees": "No account fee noted in the source; confirm current terms.",
@@ -55,8 +55,8 @@
       "adapter": "cahoot",
       "terms": "Up to £3,000 only. Variable rate; the account lasts 12 months. Cahoot is part of Santander, so check shared protection.",
       "summary": "Santander’s online banking brand. The small balance cap means the headline rate cannot apply to a whole £10,000 lump sum.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "0b1441de946b1720a56df95feebb1820fc7f6e30ddbe76ec734244689e9139b2",
       "termsChanged": false,
       "checkMessage": "Rate read from a product-specific section; terms remain separately dated."
@@ -83,7 +83,7 @@
       "sourceUrl": "https://www.zopa.com/smart-saver",
       "terms": "New customers; open Smart Saver first. Introductory offer falls to 2% after more than three withdrawals a year. Verify offer availability.",
       "summary": "A digital bank with app-managed savings. The withdrawal restriction is the key drawback for money you may need often.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
       "checkMessage": "Source unavailable (HTTP 404)"
     },
     {
@@ -108,8 +108,8 @@
       "sourceUrl": "https://www.unionpremierbond.unionbankofindiauk.co.uk/Index.aspx",
       "terms": "Lock away for one year. Interest at maturity. Not suitable for emergency savings; verify the UK entity and deposit terms.",
       "summary": "The UK banking subsidiary, not the same protection arrangement as an overseas account. Check the exact legal entity and access terms.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "188d749a1ac8dc528c1ea7e8ec604714c784544c327b27ea13fd2525d199b383",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -136,8 +136,8 @@
       "sourceUrl": "https://www.closesavings.co.uk/personal/savings-accounts/fixed-rate-bond/2-year",
       "terms": "Two-year commitment; £10,000 minimum. Annual interest paid away; withdrawals normally unavailable during the term.",
       "summary": "A specialist banking group. The minimum deposit and two-year lock matter more than a small rate advantage if you need access.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "1ad14a78833b778ed27a628c1f29d19e69e971931d36cd23833b6467cbbe9158",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -164,8 +164,8 @@
       "sourceUrl": "https://www.birminghambank.com/",
       "terms": "Give 95 days’ notice to withdraw; minimum £5,000. Confirm the live account issue and notice rules.",
       "summary": "A specialist bank rather than a household high-street name. Notice savings cannot replace immediately available emergency cash.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "391cd7448b129c3cb84374453d2c4f5698e64c4ed11b8cf8e776aeb5a95cf19e",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -192,7 +192,7 @@
       "sourceUrl": "https://www.castletrust.co.uk/savings",
       "terms": "Give 120 days’ notice to withdraw. Variable rate; check the live issue.",
       "summary": "A specialist savings provider. Only consider this access type for money you can plan to withdraw well in advance.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
       "checkMessage": "fetch failed"
     },
     {
@@ -208,7 +208,7 @@
       "bonusMonths": 12,
       "access": "Easy access",
       "protection": "100% backed by HM Treasury, within the product’s balance limits.",
-      "rateCheckedAt": "2026-10-05T09:19:32.930Z",
+      "rateCheckedAt": "2026-10-05T09:21:48.055Z",
       "termsReviewedAt": "2026-10-05",
       "checkStatus": "verified",
       "fees": "No account fee noted in the source; confirm current terms.",
@@ -218,8 +218,8 @@
       "adapter": "nsandi-aer",
       "terms": "Variable rate, yearly interest. Withdrawals are not necessarily same-day; check processing times.",
       "summary": "Government-backed savings. The trade-off may be a lower rate than commercial savings accounts.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "a39aba864f63a2c10a283246c805f2b19f6a455bb5f2b1a59417c5bfd7c480dc",
       "termsChanged": false,
       "checkMessage": "Rate read from a product-specific section; terms remain separately dated."
@@ -247,8 +247,8 @@
       "terms": "New customers and new money: includes a one-year bonus. Lower rate for ISA transfers. Flexible ISA; check the underlying deposit bank and bonus conditions.",
       "summary": "An app-based savings service. Check where the money is actually deposited, plus transfer and bonus rules, rather than judging by the app name.",
       "annualContributionLimit": 20000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "1d8d95fceaaa23ea2f5f734e3db97fe0f3b5a771e298efefdab795d4ebdd9370",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -276,7 +276,7 @@
       "terms": "New customers; includes a one-year bonus. More than three withdrawals a year reduces the rate to 0.75%. Not a flexible ISA.",
       "summary": "An app-based savings and investment service. The rate penalty makes this less suitable for repeated withdrawals; confirm the deposit bank.",
       "annualContributionLimit": 20000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
       "sourceCheckedAt": "2026-10-05T09:11:34.024Z",
       "sourceFingerprint": "71105edd01f2132bfdae714c9c3882151908c9762e21e0ea7d55cdb1bd59ea93",
       "termsChanged": false,
@@ -305,8 +305,8 @@
       "terms": "Unlimited withdrawals, no introductory bonus noted; transfers accepted. Not flexible. Check the current account issue.",
       "summary": "An online savings bank. A straightforward access structure can be useful, but always compare the live rate and transfer rules.",
       "annualContributionLimit": 20000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "66aefda7422425b4ca8f9fb2e0c41e4cd4684882634e420518d765b9da271b59",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -334,8 +334,8 @@
       "terms": "One-year fix; early exit costs 90 days’ interest according to the comparison source. ISA transfers accepted at application; verify the live penalty.",
       "summary": "A specialist bank. A fixed cash ISA allows early exit under its terms, but a penalty can reduce interest or even capital.",
       "annualContributionLimit": 20000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "63e024fd736c7f72354d76423c663f036cea9df908f1c65998f98723a5e4ca7c",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -353,7 +353,7 @@
       "bonusMonths": 12,
       "access": "Easy access",
       "protection": "100% backed by HM Treasury, within product limits.",
-      "rateCheckedAt": "2026-10-05T09:19:32.930Z",
+      "rateCheckedAt": "2026-10-05T09:21:48.055Z",
       "termsReviewedAt": "2026-10-05",
       "checkStatus": "verified",
       "fees": "No account fee noted in the source; confirm current terms.",
@@ -364,8 +364,8 @@
       "terms": "Variable-rate cash ISA. Check transfer eligibility and withdrawal timings before opening.",
       "summary": "Government-backed cash savings. Compare flexibility and transfer rules as well as the interest rate.",
       "annualContributionLimit": 20000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "35751ab98c95f429a99f852fa93dcf46cd42ffd471b5b34baa8adae999e5ba38",
       "termsChanged": false,
       "checkMessage": "Rate read from a product-specific section; terms remain separately dated."
@@ -383,7 +383,7 @@
       "bonusMonths": 12,
       "access": "Easy access",
       "protection": "100% backed by HM Treasury, within the £50,000 holding limit.",
-      "rateCheckedAt": "2026-10-05T09:19:32.930Z",
+      "rateCheckedAt": "2026-10-05T09:21:48.055Z",
       "termsReviewedAt": "2026-10-05",
       "checkStatus": "verified",
       "fees": "No account fee noted in the source; confirm current terms.",
@@ -393,9 +393,9 @@
       "adapter": "nsandi-prize",
       "terms": "No interest and no guaranteed winnings. The prize fund rate is an average across all bonds. Withdrawals normally take 3–5 days; bonds must qualify for the draw.",
       "summary": "The government-backed provider of Premium Bonds. Suitable to research for the prize structure, not for a predictable monthly or yearly income.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
       "checkMessage": "Rate read from a product-specific section; terms remain separately dated.",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "5eade59c685614e4132d964ae1af205ae13d8cbfb2ab5e6a7ae65bf2dd1e7d35",
       "termsChanged": false
     },
@@ -422,8 +422,8 @@
       "summary": "Own-brand funds and ETFs only. Simple investment range; the minimum platform fee weighs more heavily on smaller balances.",
       "terms": "An ISA is a tax wrapper, not a guaranteed return. Allow time for selling and settling investments. Fees are a dated comparison snapshot, not automatically refreshed.",
       "annualContributionLimit": 20000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "be707c122721bd673306f545a2033fc2c14092e550eded59852eb7b9b20f9510",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -451,7 +451,7 @@
       "summary": "Shares and ETFs, not traditional funds. Low headline fees do not make investments low risk; avoid confusing ISA investing with leveraged CFDs.",
       "terms": "An ISA is a tax wrapper, not a guaranteed return. Allow time for selling and settling investments. Fees are a dated comparison snapshot, not automatically refreshed.",
       "annualContributionLimit": 20000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
       "checkMessage": "Source unavailable (HTTP 403)"
     },
     {
@@ -477,8 +477,8 @@
       "summary": "ETF-focused platform rather than individual shares. Compare the DIY and managed services separately.",
       "terms": "An ISA is a tax wrapper, not a guaranteed return. Allow time for selling and settling investments. Fees are a dated comparison snapshot, not automatically refreshed.",
       "annualContributionLimit": 20000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "7b135f39a94278b8fb9442e706d00f7ec352db551cea94766632bc059d1ffbe1",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -506,8 +506,8 @@
       "summary": "A broad investment platform offering funds, ETFs and shares. Range and service are useful to compare alongside total fees.",
       "terms": "An ISA is a tax wrapper, not a guaranteed return. Allow time for selling and settling investments. Fees are a dated comparison snapshot, not automatically refreshed.",
       "annualContributionLimit": 20000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "bb6597c3775c359884192c753c4d01a26682e61eaef3aeef9878a67a48d429bd",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -534,8 +534,8 @@
       "sourceUrl": "https://www.vanguardinvestor.co.uk/what-we-offer/all-products",
       "summary": "A global equity index fund example, not a buy recommendation. Diversification reduces single-company dependence, but does not prevent losses.",
       "terms": "Traditional fund with exposure to many global companies. Research country concentration, currency risk, ongoing charges and the risk indicator.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "c310af56923ae80b8b36f8cbe0b1e57d806d941547edaf00bb582de3e3cbc7d7",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -562,8 +562,8 @@
       "sourceUrl": "https://www.vanguardinvestor.co.uk/what-we-offer/etf-products",
       "summary": "A diversified equity ETF example. Accumulation units reinvest dividends; exchange trading still carries market risk.",
       "terms": "Global shares ETF, not a savings account. Check the ticker, currency, share class and key information before investing.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "8e7f9e896737709308e749ec777e963be55b7becad0cf88813d8db5c54e07747",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -590,8 +590,8 @@
       "sourceUrl": "https://www.unilever.com/investors/",
       "summary": "Consumer-goods company. A familiar brand name is not evidence that its share price is good value.",
       "terms": "Research example only; not a stock pick, price tracker or buy/sell signal. A single company can lose most or all of its value. Read results and consider diversification.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "87174615bdf831e056d76c0ad0551d5a3ad90c9845b0abd2fc63e09896005606",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
@@ -618,7 +618,7 @@
       "sourceUrl": "https://www.nationalgrid.com/investors",
       "summary": "Energy-network company. Regulation, debt, funding needs and dividend changes can affect shareholders.",
       "terms": "Research example only; not a stock pick, price tracker or buy/sell signal. A single company can lose most or all of its value. Read results and consider diversification.",
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
       "checkMessage": "Source unavailable (HTTP 403)"
     },
     {
@@ -644,7 +644,7 @@
       "summary": "Cash Lifetime ISA provider. Compare its actual deposit bank, current interest and bonus conditions.",
       "terms": "Normally open aged 18–39; up to £4,000 annual contributions count towards your overall ISA allowance, with a 25% government bonus. Qualifying first home (up to £450,000, account open 12 months) or age 60+. Other withdrawals normally incur a 25% charge on the whole withdrawal: this can take some of your original money.",
       "annualContributionLimit": 4000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
       "sourceCheckedAt": "2026-10-05T09:11:34.024Z",
       "sourceFingerprint": "12b9122c651e50a2a24139421a4e0bdbe17a884d315b6ee6c51b7aa2d7e9d5a0",
       "termsChanged": false,
@@ -673,14 +673,21 @@
       "summary": "Investment Lifetime ISA provider. Both market losses and withdrawal charges can reduce the amount you get back.",
       "terms": "Normally open aged 18–39; up to £4,000 annual contributions count towards your overall ISA allowance, with a 25% government bonus. Qualifying first home (up to £450,000, account open 12 months) or age 60+. Other withdrawals normally incur a 25% charge on the whole withdrawal: this can take some of your original money.",
       "annualContributionLimit": 4000,
-      "lastAttemptAt": "2026-10-05T09:19:32.930Z",
-      "sourceCheckedAt": "2026-10-05T09:19:32.930Z",
+      "lastAttemptAt": "2026-10-05T09:21:48.055Z",
+      "sourceCheckedAt": "2026-10-05T09:21:48.055Z",
       "sourceFingerprint": "fd8f1de4ec884b6a5a9f756c828f016c2da0816b9d29549cffeed16a8dafc961",
       "termsChanged": false,
       "checkMessage": "Source reachable; rate and terms still require manual review."
     }
   ],
   "history": [
+    {
+      "checkedAt": "2026-10-05T09:21:48.055Z",
+      "rateChecks": 5,
+      "failures": 6,
+      "manualChecks": 13,
+      "changes": []
+    },
     {
       "checkedAt": "2026-10-05T09:19:32.930Z",
       "rateChecks": 5,
