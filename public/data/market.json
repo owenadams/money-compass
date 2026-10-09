@@ -3968,5 +3968,9 @@
       }
     ],
     "checkedAt": "2026-10-05T14:28:10.865Z"
+  },
+  "alertState": {
+    "sentAt": "2026-10-09T09:50:35.400Z",
+    "sentSignatures": []
   }
 }
