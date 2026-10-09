@@ -26,7 +26,7 @@ async function fetchSource(url) {
 const products = [];
 for (const definition of catalogue) {
   const saved = previous.products.find(item => item.id === definition.id);
-  const product = saved && saved.termsReviewedAt === definition.termsReviewedAt ? { ...definition, ...saved, adapter: definition.adapter, maximum: definition.maximum, annualContributionLimit: definition.annualContributionLimit, customerEligibility: definition.customerEligibility, appRequired: definition.appRequired, requiresAnotherAccount: definition.requiresAnotherAccount, acceptsTransfers: definition.acceptsTransfers, transferRate: definition.transferRate } : definition;
+  const product = saved && saved.termsReviewedAt === definition.termsReviewedAt ? { ...definition, ...saved, adapter: definition.adapter, maximum: definition.maximum, annualContributionLimit: definition.annualContributionLimit, customerEligibility: definition.customerEligibility, appRequired: definition.appRequired, requiresAnotherAccount: definition.requiresAnotherAccount, acceptsTransfers: definition.acceptsTransfers, transferRate: definition.transferRate, ...(definition.category === 'Current accounts' ? { currentAccount: definition.currentAccount, terms: definition.terms, summary: definition.summary, fees: definition.fees, protection: definition.protection, sourceUrl: definition.sourceUrl, editorialUrl: definition.editorialUrl, reviewUrl: definition.reviewUrl } : {}) } : definition;
   try {
     const html = await fetchSource(product.sourceUrl);
     const fingerprint = pageFingerprint(html);

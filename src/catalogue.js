@@ -55,7 +55,7 @@ export const catalogue = [
       balanceAER: 0, balanceBonusMonths: 0, monthlyFee: 0,
       cashbackPrograms: [{ id: 'spend', label: 'Eligible card spending', rate: 2, spendSource: 'spend', monthlyCashbackCap: 20, minimumCardTransactions: 15, minimumLinkedSavings: 1000 }],
       oneOffSwitchBonus: null,
-      eligibilityNotes: '2% cashback applies only to eligible purchase categories, requires 15 or more debit-card transactions a month and at least £1,000 in Chase savings. Cashback capped at £20 a month.',
+      eligibilityNotes: '2% cashback applies only to eligible purchase categories, requires 15 or more debit-card transactions a month and at least £1,000 in Chase savings. Cashback capped at £20 a month. Open the boosted linked saver within 31 days of opening the current account to qualify for its introductory rate.',
       linkedSavings: { name: 'Chase Saver', rate: 4.5, baseRate: 2.25, bonusRate: 2.25, bonusMonths: 12, maximum: 3000000, requiredOpenDays: 31 },
       overdraft: 'No arranged overdraft.',
       summary: 'An app-based current account. Its main estimated return here is category-limited debit-card cashback; the linked saver is calculated separately using the linked savings balance you enter.'
