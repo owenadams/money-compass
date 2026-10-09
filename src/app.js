@@ -1,7 +1,7 @@
 import './app.css';
 import { createIcons, Compass, ArrowUpRight, Bookmark, Search, ShieldCheck, Clock3, CircleHelp, ChevronDown, Wallet, TrendingUp, RefreshCw, Check, Bell, X } from 'lucide';
 import { initialMarket } from './catalogue.js';
-import { categories, assessment, estimateInterest, isStale, selectProducts, switchingComparison, productForFunding } from './finance.js';
+import { categories, assessment, estimateCurrentAccount, estimateInterest, isStale, selectProducts, switchingComparison, productForFunding } from './finance.js';
 
 const iconSet = { Compass, ArrowUpRight, Bookmark, Search, ShieldCheck, Clock3, CircleHelp, ChevronDown, Wallet, TrendingUp, RefreshCw, Check, Bell, X };
 const app = document.querySelector('#app');
@@ -9,13 +9,14 @@ const money = value => new Intl.NumberFormat('en-GB', { style: 'currency', curre
 const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const icon = name => `<i data-lucide="${name.replace(/([a-z])([A-Z0-9])/g, '$1-$2').toLowerCase()}" aria-hidden="true"></i>`;
 const date = value => value ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not run yet';
-const external = (url, label) => `<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">${escape(label)}${icon('ArrowUpRight')}</a>`;
+const external = (url, label) => { const linkLabel = url === 'https://www.moneysavingexpert.com/banking/compare-best-bank-accounts/' && label === 'Provider terms' ? 'Current-account comparison source' : label; return `<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">${escape(linkLabel)}${icon('ArrowUpRight')}</a>`; };
 let market = initialMarket;
 let dataWarning = '';
 let saved = [];
 let compared = [];
 let amount = 10000;
 let currentRate = null;
+const currentAccountInputs = { balance: 10000, monthlySpend: 0, monthlyBills: 0, monthlyPayIn: 0, directDebitCount: 0, cardTransactions: 0, linkedSavingsBalance: 0, rewardChoice: 'bills' };
 let toastTimer;
 try {
   const storedSaved = JSON.parse(localStorage.getItem('money-compass-saved') || '[]');
@@ -26,7 +27,13 @@ try {
   if (storedAmount > 0 && storedAmount <= 10000000 && Number.isFinite(storedAmount)) amount = storedAmount;
   const storedRate = localStorage.getItem('money-compass-current-rate');
   if (storedRate !== null && storedRate !== '' && Number.isFinite(Number(storedRate)) && Number(storedRate) >= 0 && Number(storedRate) <= 100) currentRate = Number(storedRate);
+  const storedCurrentInputs = JSON.parse(localStorage.getItem('money-compass-current-account-inputs') || 'null');
+  if (storedCurrentInputs && typeof storedCurrentInputs === 'object') {
+    for (const key of Object.keys(currentAccountInputs)) if (key !== 'rewardChoice' && Number.isFinite(Number(storedCurrentInputs[key])) && Number(storedCurrentInputs[key]) >= 0) currentAccountInputs[key] = Number(storedCurrentInputs[key]);
+    currentAccountInputs.rewardChoice = 'bills';
+  }
 } catch { dataWarning = 'Device storage is unavailable. Your shortlist will not persist.'; }
+currentAccountInputs.balance = amount;
 let view = 'compare';
 const filters = { category: 'Savings', access: '', search: '', sort: 'rate', customer: '', funding: 'new', noApp: false, noOtherAccount: false, unlimitedAccess: false };
 const refreshIcons = () => createIcons({ icons: iconSet, attrs: { 'stroke-width': 1.7 } });
@@ -39,6 +46,7 @@ function sourceStatus(product) {
 }
 
 function productRow(product) {
+  if (product.category === 'Current accounts') return currentAccountRow(product);
   const verdict = assessment(product, amount);
   const estimated = estimateInterest(product, amount);
   const current = !isStale(product.rateCheckedAt) && product.checkStatus !== 'failed' && !product.termsChanged;
@@ -58,13 +66,35 @@ function productRow(product) {
   </div></details><label class="comparison-choice"><input type="checkbox" data-compare="${escape(product.id)}" aria-label="Compare ${escape(product.provider)} ${escape(product.name)}" ${compared.includes(product.id) ? 'checked' : ''} ${compared.length >= 3 && !compared.includes(product.id) ? 'disabled' : ''} />Compare side-by-side</label></article>`;
 }
 
+function currentAccountRow(product) {
+  const estimate = estimateCurrentAccount(product, currentAccountInputs);
+  const isSaved = saved.includes(product.id);
+  const isCompared = compared.includes(product.id);
+  const terms = product.currentAccount;
+  const qualification = estimate.qualifiedBenefit ? 'Some entered conditions qualify; confirm the remaining offer terms.' : 'Entered activity does not meet one or more reward conditions.';
+  const domain = new URL(product.sourceUrl).hostname;
+  return `<article class="product-row current-account-row" data-product="${escape(product.id)}"><div class="product-overview">
+    <div class="provider"><div class="provider-logo"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128" alt="" loading="lazy" referrerpolicy="no-referrer" /><span>${escape(product.provider.slice(0, 2))}</span></div><div><h3>${escape(product.provider)}</h3><p>${escape(product.name)}</p><span class="source-status warning-text">${escape(sourceStatus(product))}</span></div></div>
+    <div class="rate"><strong>${money(estimate.netValue)}</strong><span>estimated net value · 1 year</span></div>
+    <div class="access"><span class="access-label">${icon('Clock3')}Everyday access</span><small>Monthly fee: ${money(terms.monthlyFee)}/month</small></div>
+    <div class="verdict"><span class="badge ${estimate.netValue >= 0 ? 'positive' : 'caution'}">${estimate.netValue >= 0 ? 'Based on your inputs' : 'Fee exceeds estimated rewards'}</span><small>${escape(qualification)}</small></div>
+    <button class="icon-button save-button ${isSaved ? 'saved' : ''}" data-save="${escape(product.id)}" aria-label="${isSaved ? 'Remove' : 'Save'} ${escape(product.provider)} account" aria-pressed="${isSaved}" title="${isSaved ? 'Remove from shortlist' : 'Save to shortlist'}">${icon(isSaved ? 'Check' : 'Bookmark')}</button>
+  </div><div class="return-line current-account-value"><span>Current-account interest <strong>${money(estimate.interest)}</strong></span>${estimate.linkedSavingsInterest ? `<span>Linked saver interest <strong>${money(estimate.linkedSavingsInterest)}</strong></span>` : ''}<span>Cashback <strong>${money(estimate.cashback)}</strong></span><span>Fees <strong>−${money(estimate.fee)}</strong></span>${estimate.oneOffSwitchBonus ? `<span class="switch-bonus">Possible one-off switch offer: <strong>${money(estimate.oneOffSwitchBonus)}</strong> · excluded from annual value</span>` : ''}<small>Illustration from the figures you entered; excludes tax where applicable and any overdraft interest. Check eligibility and product terms.</small></div><details><summary>Requirements, overdraft & provider review ${icon('ChevronDown')}</summary><div class="product-details"><section><h4>Conditions and rewards</h4><p>${escape(terms.eligibilityNotes)}</p><p class="detail-label">Overdraft</p><p>${escape(terms.overdraft)}</p><p class="fine-print">An arranged overdraft is borrowing, not a reward. This comparison does not estimate overdraft costs or assume you will qualify.</p></section><section><h4>Provider review</h4><p>${escape(product.summary)}</p><p class="review-date">Money Compass summary · terms reviewed ${date(product.termsReviewedAt)}</p>${external(product.sourceUrl, 'Provider terms')}${external(product.reviewUrl, 'Customer reviews')}${external(product.editorialUrl, 'Independent current-account guide')}<p class="fine-print">Customer scores are not verified here. Provider terms and offer eligibility can change.</p></section><section><h4>Safety & freshness</h4><p>${escape(product.protection)}</p><p class="review-date">Terms snapshot: ${date(product.termsReviewedAt)}<br>Rate or reward snapshot: ${date(product.rateCheckedAt)}<br>${escape(product.checkMessage || 'Not automatically verified; confirm current terms before applying.')}</p></section></div></details><label class="comparison-choice"><input type="checkbox" data-compare="${escape(product.id)}" aria-label="Compare ${escape(product.provider)} ${escape(product.name)}" ${isCompared ? 'checked' : ''} ${compared.length >= 3 && !isCompared ? 'disabled' : ''} />Compare side-by-side</label></article>`;
+}
+
+function currentAccountInputsForm() {
+  const numberField = (id, label, help, step = '1') => `<label>${escape(label)}<input data-current-input="${id}" type="number" min="0" step="${step}" value="${escape(currentAccountInputs[id])}"/><small>${escape(help)}</small></label>`;
+  return `<section class="current-account-calculator"><div><h2>Estimate account rewards</h2><p>Enter typical monthly figures. Keep savings elsewhere separate from the current-account balance.</p></div><div class="current-account-inputs">${numberField('monthlyPayIn', 'Monthly pay-in', 'Salary and other qualifying deposits')}${numberField('monthlySpend', 'Eligible card spending', 'Qualifying purchases each month')}${numberField('monthlyBills', 'Eligible bills by Direct Debit', 'Bills that meet the account’s cashback rules')}${numberField('directDebitCount', 'Qualifying Direct Debits', 'Number paid out each month')}${numberField('cardTransactions', 'Card purchases', 'Number of eligible card transactions monthly')}${numberField('linkedSavingsBalance', 'Linked savings balance', 'Only for accounts requiring or offering a linked saver')}</div><p class="fine-print">Estimates assume the figures repeat each month for a year. Rewards are included only when entered figures meet the stated thresholds. One-off switch offers are shown separately. Overdraft charges are not included.</p></section>`;
+}
+
 function comparisonPage() {
   const shortlist = view === 'shortlist';
-  return `<div class="section-heading"><div><p class="eyebrow">${shortlist ? 'YOUR RESEARCH' : 'UK MONEY OPTIONS'}</p><h1>${shortlist ? 'Your shortlist' : 'Find a place for your money'}</h1><p>${shortlist ? 'Saved on this device. Compare the conditions before choosing.' : 'Compare the rate. Know the rules. Check the provider.'}</p></div><div class="calculator-inputs"><label class="amount-field">Amount to compare <div><span>£</span><input id="amount" type="number" min="1" max="10000000" step="1" value="${amount}" aria-label="Comparison balance in pounds" /></div></label><label class="current-rate-field">Your current AER (optional)<div><input id="current-rate" type="number" min="0" max="100" step="0.01" value="${currentRate ?? ''}" placeholder="e.g. 3.00" aria-label="Your current annual savings rate" /><span>%</span></div></label></div></div>
+  return `<div class="section-heading"><div><p class="eyebrow">${shortlist ? 'YOUR RESEARCH' : 'UK MONEY OPTIONS'}</p><h1>${shortlist ? 'Your shortlist' : 'Find a place for your money'}</h1><p>${shortlist ? 'Saved on this device. Compare the conditions before choosing.' : 'Compare the rate. Know the rules. Check the provider.'}</p></div><div class="calculator-inputs"><label class="amount-field">${filters.category === 'Current accounts' ? 'Average current-account balance' : 'Amount to compare'}<div><span>£</span><input id="amount" type="number" min="0" max="10000000" step="1" value="${amount}" aria-label="${filters.category === 'Current accounts' ? 'Average current-account balance' : 'Comparison balance'} in pounds" /></div></label>${filters.category === 'Current accounts' ? '' : `<label class="current-rate-field">Your current AER (optional)<div><input id="current-rate" type="number" min="0" max="100" step="0.01" value="${currentRate ?? ''}" placeholder="e.g. 3.00" aria-label="Your current annual savings rate" /><span>%</span></div></label>`}</div></div>
   ${shortlist ? '' : `<div class="money-paths"><button data-path="cash" aria-pressed="${filters.category === 'Savings' && filters.access === 'Easy access'}">${icon('Wallet')}<div><h2>Within reach</h2><p>Cash for unexpected bills and shorter-term plans.</p><span>Compare easy-access savings ${icon('ArrowUpRight')}</span></div></button><button data-path="invest" aria-pressed="${filters.category === 'Stocks & shares ISAs'}">${icon('TrendingUp')}<div><h2>Room to grow</h2><p>Investments for money you can leave for 5+ years.</p><span>Compare investment ISAs ${icon('ArrowUpRight')}</span></div></button></div>`}
   <div id="return-summary" class="return-summary" aria-live="polite"></div>
+  ${filters.category === 'Current accounts' ? currentAccountInputsForm() : ''}
   <div class="category-tabs" role="tablist" aria-label="Money categories">${(shortlist ? ['All saved', ...categories] : categories).map(category => `<button role="tab" data-category="${escape(category)}" aria-selected="${filters.category === category}" class="${filters.category === category ? 'active' : ''}">${escape(category)}</button>`).join('')}</div>
-  <div class="filter-bar"><label class="search-field">${icon('Search')}<input id="search" type="search" placeholder="Search a provider or account" value="${escape(filters.search)}" aria-label="Search providers and accounts" /></label><label>Access<select id="access"><option value="">All access types</option>${['Easy access', 'Limited access', 'Notice', 'Fixed term', 'Sell investments', 'Restricted purpose'].map(access => `<option ${filters.access === access ? 'selected' : ''}>${escape(access)}</option>`).join('')}</select></label><label>Sort by<select id="sort"><option value="rate" ${filters.sort === 'rate' ? 'selected' : ''}>Highest listed eligible AER</option><option value="verified" ${filters.sort === 'verified' ? 'selected' : ''}>Recently verified first</option><option value="name" ${filters.sort === 'name' ? 'selected' : ''}>Provider A–Z</option></select></label></div>
+  <div class="filter-bar"><label class="search-field">${icon('Search')}<input id="search" type="search" placeholder="Search a provider or account" value="${escape(filters.search)}" aria-label="Search providers and accounts" /></label><label>Access<select id="access"><option value="">All access types</option>${['Everyday access', 'Easy access', 'Limited access', 'Notice', 'Fixed term', 'Sell investments', 'Restricted purpose'].map(access => `<option ${filters.access === access ? 'selected' : ''}>${escape(access)}</option>`).join('')}</select></label><label>Sort by<select id="sort">${filters.category === 'Current accounts' ? `<option value="current-value" ${filters.sort !== 'name' ? 'selected' : ''}>Estimated net value</option><option value="name" ${filters.sort === 'name' ? 'selected' : ''}>Provider A–Z</option>` : `<option value="rate" ${filters.sort === 'rate' ? 'selected' : ''}>Highest listed eligible AER</option><option value="verified" ${filters.sort === 'verified' ? 'selected' : ''}>Recently verified first</option><option value="name" ${filters.sort === 'name' ? 'selected' : ''}>Provider A–Z</option>`}</select></label></div>
   <div class="eligibility-filters"><label>Customer offer<select id="customer"><option value="">Any customer eligibility</option><option value="new" ${filters.customer === 'new' ? 'selected' : ''}>New-customer offers</option><option value="any" ${filters.customer === 'any' ? 'selected' : ''}>No new-customer restriction stated</option></select></label>${filters.category === 'Cash ISAs' ? `<label>Money to deposit<select id="funding"><option value="new" ${filters.funding !== 'transfer' ? 'selected' : ''}>New money</option><option value="transfer" ${filters.funding === 'transfer' ? 'selected' : ''}>Transfer an existing ISA</option></select></label>` : ''}<label class="check-filter"><input type="checkbox" id="no-app" ${filters.noApp ? 'checked' : ''} />No app required</label><label class="check-filter"><input type="checkbox" id="no-other-account" ${filters.noOtherAccount ? 'checked' : ''} />No other account required</label><label class="check-filter"><input type="checkbox" id="unlimited-access" ${filters.unlimitedAccess ? 'checked' : ''} />Unrestricted withdrawals</label></div>
   <div class="comparison-intro"><span id="result-count"></span><button id="comparison-open" data-side-by-side class="secondary-button"></button><span>Selected options, not the whole market ${icon('CircleHelp')}</span></div>
   <section id="comparison-selections" class="comparison-selections" aria-label="Selected for comparison"></section>
@@ -101,8 +131,8 @@ function sideBySideTable() {
   const yesNo = value => value === true ? 'Yes' : value === false ? 'No' : 'Unknown — check terms';
   const rows = [
     ['Category / risk', product => `${product.category} · ${product.risk}`],
-    ['Rate / return', product => product.rate === null ? 'No guaranteed return' : `${product.rate.toFixed(2)}% ${product.rateKind}`],
-    ['One-year interest', product => { const interest = estimateInterest(product, amount); return interest === null ? 'Not predictable / balance not eligible' : `${money(interest)} · total ${money(amount + interest)} (before tax and costs)`; }],
+    ['Rate / return', product => product.category === 'Current accounts' ? 'Varies by balance and qualifying activity' : product.rate === null ? 'No guaranteed return' : `${product.rate.toFixed(2)}% ${product.rateKind}`],
+    ['One-year interest / value', product => { if (product.category === 'Current accounts') { const estimate = estimateCurrentAccount(product, { ...currentAccountInputs, balance: amount }); return `${money(estimate.netValue)} estimated net value (current and linked balances)`; } const interest = estimateInterest(product, amount); return interest === null ? 'Not predictable / balance not eligible' : `${money(interest)} · total ${money(amount + interest)} (before tax and costs)`; }],
     ['Access', product => product.access],
     ['Balance limits', product => `${money(product.minimum)} min; ${product.maximum === null ? 'maximum: check terms' : money(product.maximum) + ' max'}`],
     ['Customer eligibility', product => product.customerEligibility === 'new' ? 'New customers only' : product.customerEligibility === 'any' ? 'No new-customer restriction stated' : 'Unknown — check terms'],
@@ -115,6 +145,11 @@ function sideBySideTable() {
     ['Provider review', product => product.summary],
     ['Freshness', product => `${sourceStatus(product)} · rate ${date(product.rateCheckedAt)} · terms ${date(product.termsReviewedAt)}`]
   ];
+  if (products.some(product => product.category === 'Current accounts')) rows.splice(2, 0,
+    ['Cashback', product => product.category === 'Current accounts' ? money(estimateCurrentAccount(product, { ...currentAccountInputs, balance: amount }).cashback) : 'Not a current account'],
+    ['Linked-saver interest', product => product.category === 'Current accounts' ? money(estimateCurrentAccount(product, { ...currentAccountInputs, balance: amount }).linkedSavingsInterest) : 'Not a current account'],
+    ['Monthly fee', product => product.category === 'Current accounts' ? `${money(product.currentAccount.monthlyFee)}/month` : 'See account fees'],
+    ['One-off switch offer', product => product.category === 'Current accounts' && product.currentAccount.oneOffSwitchBonus ? `${money(product.currentAccount.oneOffSwitchBonus)} (eligibility unconfirmed; excluded above)` : 'None listed']);
   return `<table class="side-by-side-table"><caption class="sr-only">Selected account comparison for ${money(amount)}</caption><thead><tr><th scope="col">Account details</th>${products.map(product => `<th scope="col"><h2>${escape(product.provider)}</h2><p>${escape(product.name)}</p><button class="icon-button" data-remove-comparison="${escape(product.id)}" aria-label="Remove ${escape(product.provider)} from comparison" title="Remove from comparison">${icon('X')}</button></th>`).join('')}</tr></thead><tbody>${rows.map(([label, value]) => `<tr><th scope="row">${escape(label)}</th>${products.map(product => `<td>${escape(value(product))}</td>`).join('')}</tr>`).join('')}<tr><th scope="row">Sources</th>${products.map(product => `<td>${external(product.sourceUrl, 'Current provider terms')}${external(product.reviewUrl, 'Customer reviews')}${external(product.editorialUrl, 'Independent / official guide')}</td>`).join('')}</tr></tbody></table>`;
 }
 
@@ -126,9 +161,11 @@ function renderResults() {
   if (view === 'comparison') { document.querySelector('#comparison-table').innerHTML = sideBySideTable(); refreshIcons(); return; }
   const results = document.querySelector('#results');
   if (!results) return;
-  const products = selectProducts(market.products, { ...filters, category: filters.category === 'All saved' ? '' : filters.category, amount, saved, savedOnly: view === 'shortlist' });
+  const products = selectProducts(market.products, { ...filters, category: filters.category === 'All saved' ? '' : filters.category, amount, currentAccountInputs: { ...currentAccountInputs, balance: amount }, saved, savedOnly: view === 'shortlist' });
   document.querySelector('#result-count').textContent = `${products.length} ${products.length === 1 ? 'option' : 'options'} · ${money(amount)} comparison`;
-  const best = products.map(product => ({ product, interest: estimateInterest(product, amount) })).filter(item => item.interest !== null).sort((first, second) => second.interest - first.interest)[0];
+  const best = filters.category === 'Current accounts'
+    ? products.map(product => ({ product, interest: estimateCurrentAccount(product, { ...currentAccountInputs, balance: amount })?.netValue })).filter(item => Number.isFinite(item.interest)).sort((first, second) => second.interest - first.interest)[0]
+    : products.map(product => ({ product, interest: estimateInterest(product, amount) })).filter(item => item.interest !== null).sort((first, second) => second.interest - first.interest)[0];
   const comparison = switchingComparison(products, amount, currentRate);
   const comparisonButton = document.querySelector('#comparison-open');
   comparisonButton.textContent = `Side-by-side (${compared.length}/3)`;
@@ -137,7 +174,9 @@ function renderResults() {
   selection.hidden = compared.length === 0;
   selection.innerHTML = `<h2>Selected for comparison (${compared.length}/3)</h2><ul>${compared.map(id => market.products.find(product => product.id === id)).filter(Boolean).map(product => `<li><div><strong>${escape(product.provider)}</strong><span>${escape(product.name)}</span></div><button class="icon-button" data-remove-comparison="${escape(product.id)}" aria-label="Remove ${escape(product.provider)} ${escape(product.name)} from comparison" title="Remove from comparison">${icon('X')}</button></li>`).join('')}</ul>`;
   const summary = document.querySelector('#return-summary');
-  summary.innerHTML = best ? `<div><span>Highest listed 1-year estimate</span><strong>${money(best.interest)} interest</strong><p>${escape(best.product.provider)} · total ${money(amount + best.interest)}</p></div><div><span>Against your current rate</span><strong>${currentRate === null ? 'Add your AER above' : `${money(Math.abs(best.interest - amount * currentRate / 100))} ${best.interest >= amount * currentRate / 100 ? 'more' : 'less'}`}</strong><p>Before tax, fees and penalties. Listed rates may need verification.</p></div>${comparison && currentRate !== null && filters.category === 'Savings' ? `<p class="switch-note">${comparison.gain > 0 ? `${escape(comparison.product.provider)} has a recently verified easy-access rate that could add ${money(comparison.gain)} a year versus your ${currentRate}% AER.` : 'No higher recently verified easy-access savings return found for this amount and current rate.'} Check eligibility, protection and exit costs before moving money.</p>` : ''}` : `<div><span>${money(amount)} comparison</span><strong>${products.some(product => product.risk === 'Investment') ? 'Investment returns are not guaranteed' : 'No eligible fixed-interest estimate'}</strong><p>${products.some(product => product.risk === 'Investment') ? 'Market prices can rise or fall; a savings AER cannot predict investment returns.' : 'Check deposit limits, rate availability and product conditions.'}</p></div>`;
+  summary.innerHTML = filters.category === 'Current accounts'
+    ? `<div><span>Highest estimated ongoing yearly value</span><strong>${best ? money(best.interest) : money(0)}</strong><p>${best ? `${escape(best.product.provider)} · after entered account fees` : 'No current account matches your filters'}</p></div><div><span>What is included</span><strong>Interest + cashback − fees</strong><p>One-off switch offers and overdrafts are separate. Linked-saver interest uses its own balance input.</p></div>`
+    : best ? `<div><span>Highest listed 1-year estimate</span><strong>${money(best.interest)} interest</strong><p>${escape(best.product.provider)} · total ${money(amount + best.interest)}</p></div><div><span>Against your current rate</span><strong>${currentRate === null ? 'Add your AER above' : `${money(Math.abs(best.interest - amount * currentRate / 100))} ${best.interest >= amount * currentRate / 100 ? 'more' : 'less'}`}</strong><p>Before tax, fees and penalties. Listed rates may need verification.</p></div>${comparison && currentRate !== null && filters.category === 'Savings' ? `<p class="switch-note">${comparison.gain > 0 ? `${escape(comparison.product.provider)} has a recently verified easy-access rate that could add ${money(comparison.gain)} a year versus your ${currentRate}% AER.` : 'No higher recently verified easy-access savings return found for this amount and current rate.'} Check eligibility, protection and exit costs before moving money.</p>` : ''}` : `<div><span>${money(amount)} comparison</span><strong>${products.some(product => product.risk === 'Investment') ? 'Investment returns are not guaranteed' : 'No eligible fixed-interest estimate'}</strong><p>${products.some(product => product.risk === 'Investment') ? 'Market prices can rise or fall; a savings AER cannot predict investment returns.' : 'Check deposit limits, rate availability and product conditions.'}</p></div>`;
   results.innerHTML = products.length ? products.map(productRow).join('') : `<div class="empty-state">${icon('Bookmark')}<h2>${view === 'shortlist' ? 'No saved matches' : 'No matching options'}</h2><p>${view === 'shortlist' ? 'Save an option from Compare to add it here, or change your filters.' : 'Try a different category, access type or provider name.'}</p><button data-clear class="secondary-button">Clear filters</button></div>`;
   refreshIcons();
 }
@@ -161,7 +200,7 @@ function setView(next) {
 }
 
 function persist() {
-  try { localStorage.setItem('money-compass-saved', JSON.stringify(saved)); localStorage.setItem('money-compass-comparison', JSON.stringify(compared)); localStorage.setItem('money-compass-amount', String(amount)); localStorage.setItem('money-compass-current-rate', currentRate === null ? '' : String(currentRate)); }
+  try { localStorage.setItem('money-compass-saved', JSON.stringify(saved)); localStorage.setItem('money-compass-comparison', JSON.stringify(compared)); localStorage.setItem('money-compass-amount', String(amount)); localStorage.setItem('money-compass-current-rate', currentRate === null ? '' : String(currentRate)); localStorage.setItem('money-compass-current-account-inputs', JSON.stringify(currentAccountInputs)); }
   catch { dataWarning = 'Device storage is unavailable. Changes will not persist after closing.'; }
 }
 app.addEventListener('click', event => {
@@ -171,7 +210,7 @@ app.addEventListener('click', event => {
   if (button.hasAttribute('data-side-by-side')) { location.hash = 'comparison'; return; }
   if (button.dataset.removeComparison) { compared = compared.filter(id => id !== button.dataset.removeComparison); persist(); render(); return; }
   if (button.dataset.path) { Object.assign(filters, { category: button.dataset.path === 'cash' ? 'Savings' : 'Stocks & shares ISAs', access: button.dataset.path === 'cash' ? 'Easy access' : '', search: '', customer: '', funding: 'new', noApp: false, noOtherAccount: false, unlimitedAccess: false }); render(); return; }
-  if (button.dataset.category) { filters.category = button.dataset.category; filters.access = ''; if (filters.category !== 'Cash ISAs') filters.funding = 'new'; render(); return; }
+  if (button.dataset.category) { filters.category = button.dataset.category; filters.access = ''; if (filters.category !== 'Cash ISAs') filters.funding = 'new'; filters.sort = filters.category === 'Current accounts' ? 'current-value' : filters.category === 'Savings' || filters.category === 'Cash ISAs' ? 'rate' : 'name'; render(); return; }
   if (button.hasAttribute('data-clear')) { Object.assign(filters, { search: '', access: '', customer: '', funding: 'new', noApp: false, noOtherAccount: false, unlimitedAccess: false }); render(); return; }
   if (button.dataset.save) {
     const id = button.dataset.save;
@@ -191,8 +230,9 @@ app.addEventListener('click', event => {
 app.addEventListener('error', event => { if (event.target instanceof HTMLImageElement) event.target.hidden = true; }, true);
 app.addEventListener('input', event => {
   if (event.target.id === 'search') { filters.search = event.target.value; renderResults(); }
-  if (event.target.id === 'amount' && event.target.checkValidity() && Number.isFinite(event.target.valueAsNumber)) { amount = event.target.valueAsNumber; persist(); renderResults(); }
+  if (event.target.id === 'amount' && event.target.checkValidity() && Number.isFinite(event.target.valueAsNumber)) { amount = event.target.valueAsNumber; currentAccountInputs.balance = amount; persist(); renderResults(); }
   if (event.target.id === 'current-rate' && event.target.checkValidity()) { currentRate = event.target.value === '' ? null : event.target.valueAsNumber; persist(); renderResults(); }
+  if (event.target.dataset.currentInput && event.target.checkValidity() && Number.isFinite(event.target.valueAsNumber)) { currentAccountInputs[event.target.dataset.currentInput] = event.target.valueAsNumber; persist(); renderResults(); }
 });
 app.addEventListener('change', event => {
   if (event.target.dataset.compare) {
@@ -208,11 +248,14 @@ app.addEventListener('change', event => {
   if (event.target.id === 'unlimited-access') filters.unlimitedAccess = event.target.checked;
   if (event.target.id === 'access') filters.access = event.target.value;
   if (event.target.id === 'sort') filters.sort = event.target.value;
+  if (event.target.dataset.currentInput && event.target.checkValidity() && Number.isFinite(event.target.valueAsNumber)) currentAccountInputs[event.target.dataset.currentInput] = event.target.valueAsNumber;
   if (event.target.id === 'amount') {
     if (!event.target.checkValidity() || !Number.isFinite(event.target.valueAsNumber)) { event.target.reportValidity(); return; }
     amount = event.target.valueAsNumber;
+    currentAccountInputs.balance = amount;
     persist();
   }
+  persist();
   renderResults();
 });
 window.addEventListener('hashchange', () => setView(location.hash.slice(1)));

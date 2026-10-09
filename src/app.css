@@ -181,4 +181,18 @@ input[type="checkbox"] { accent-color: var(--green); width: 18px; height: 18px; 
 .comparison-selections li > div { min-width: 0; }
 .comparison-selections strong { font-size: 12px; display: block; }
 .comparison-selections span { font-size: 11px; color: var(--muted); display: block; margin-top: 4px; overflow-wrap: anywhere; }
+.current-account-calculator { border-block: 1px solid var(--line); padding: 20px 0; margin: 0 0 18px; }
+.current-account-calculator h2 { font-size: 18px; margin-bottom: 7px; }
+.current-account-calculator > div:first-child > p { color: var(--muted); font-size: 12px; margin-bottom: 17px; }
+.current-account-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 18px; }
+.current-account-inputs label { display: grid; gap: 6px; font-size: 11px; color: #202b27; }
+.current-account-inputs input { width: 100%; height: 42px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; color: #202b27; background: white; }
+.current-account-inputs small { color: var(--muted); font-size: 10px; line-height: 1.5; }
+.current-account-calculator > .fine-print { margin-top: 14px; font-size: 10px; line-height: 1.7; color: var(--muted); }
+.current-account-row .rate strong { font-size: 22px; }
+.current-account-value { column-gap: 20px; }
+.current-account-value .switch-bonus { color: var(--amber); }
+.current-account-value small { flex-basis: 100%; font-size: 10px; line-height: 1.6; }
+@media (max-width: 700px) { .current-account-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .current-account-inputs { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

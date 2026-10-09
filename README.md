@@ -8,6 +8,8 @@ Website: [owenadams.github.io/money-compass](https://owenadams.github.io/money-c
 
 There are 18 selected savings accounts and 13 cash ISAs, including Tesco Bank, Trading 212, Chase, Starling, Post Office and NatWest. This is not an exhaustive market list.
 
+Current accounts are a separate category with four examples. Their estimate uses the entered balance, monthly pay-in, eligible card spending, bills, Direct Debit count, card transactions and linked-saver balance to calculate qualifying interest and rewards minus account fees. One-off switching offers are displayed separately and are not counted as ongoing value. Overdraft interest is disclosed but never treated as a reward or included in the estimate. Current-account terms are dated 8 October 2026 and require confirmation before applying.
+
 The default **Highest listed eligible AER** sort puts rates for your balance in descending order, then incompatible balance ranges. Source warnings stay visible rather than silently sorting unverified accounts alphabetically. **Recently verified first** prioritises clean recent automated rate checks; the rest still remain in numeric rate order. A high listed rate is not an endorsement or evidence of freshness.
 
 The amount recalculates one-year cash interest and a total balance illustration as you type. An optional current AER shows the pound difference. Short bonuses use the published follow-on rate when available; capped or ineligible balances have no full-amount estimate. Figures assume conditions are met and the published rates stay unchanged apart from that bonus expiry, before tax, fees and penalties. Investment and prize returns are not predictable from a cash AER.

@@ -1,4 +1,4 @@
-export const categories = ['Savings', 'Cash ISAs', 'Stocks & shares ISAs', 'Funds & ETFs', 'Individual shares', 'Premium Bonds', 'Lifetime ISAs'];
+export const categories = ['Savings', 'Cash ISAs', 'Current accounts', 'Stocks & shares ISAs', 'Funds & ETFs', 'Individual shares', 'Premium Bonds', 'Lifetime ISAs'];
 
 export function isStale(date, now = new Date()) {
   const age = now.getTime() - new Date(date).getTime();
@@ -48,7 +48,7 @@ export function matchesEligibility(product, filters) {
     && (!filters.noApp || product.appRequired === false)
     && (!filters.noOtherAccount || product.requiresAnotherAccount === false)
     && (!filters.funding || filters.funding !== 'transfer' || product.category === 'Cash ISAs' && product.acceptsTransfers === true)
-    && (!filters.unlimitedAccess || product.access === 'Easy access');
+    && (!filters.unlimitedAccess || product.access === 'Easy access' || product.access === 'Everyday access');
 }
 
 export function selectProducts(products, filters, now = new Date()) {
@@ -60,10 +60,58 @@ export function selectProducts(products, filters, now = new Date()) {
     .map(product => productForFunding(product, filters.funding))
     .sort((first, second) => {
       if (filters.sort === 'name') return first.provider.localeCompare(second.provider);
+      if (filters.category === 'Current accounts') {
+        const value = product => estimateCurrentAccount(product, filters.currentAccountInputs || { balance: filters.amount ?? 0, monthlySpend: 0, monthlyBills: 0, monthlyPayIn: 0, directDebitCount: 0, cardTransactions: 0, linkedSavingsBalance: 0 })?.netValue ?? -Infinity;
+        return value(second) - value(first) || first.provider.localeCompare(second.provider);
+      }
       const eligible = product => Number.isFinite(product.rate) && product.rateKind === 'AER' && filters.amount >= product.minimum && (product.maximum === null || filters.amount <= product.maximum);
       const verified = product => eligible(product) && product.checkStatus === 'verified' && !isStale(product.rateCheckedAt, now) && !product.termsChanged;
       if (filters.sort === 'verified' && verified(first) !== verified(second)) return Number(verified(second)) - Number(verified(first));
       if (eligible(first) !== eligible(second)) return Number(eligible(second)) - Number(eligible(first));
       return (Number.isFinite(second.rate) ? second.rate : -1) - (Number.isFinite(first.rate) ? first.rate : -1) || first.provider.localeCompare(second.provider);
     });
+}
+
+export function estimateCurrentAccount(product, inputs) {
+  const terms = product.currentAccount;
+  if (!terms || product.category !== 'Current accounts') return null;
+  const balance = Number(inputs.balance);
+  const monthlySpend = Number(inputs.monthlySpend);
+  const monthlyBills = Number(inputs.monthlyBills);
+  const monthlyPayIn = Number(inputs.monthlyPayIn);
+  const directDebitCount = Number(inputs.directDebitCount);
+  const cardTransactions = Number(inputs.cardTransactions);
+  const linkedSavingsBalance = Number(inputs.linkedSavingsBalance);
+  const rewardChoice = inputs.rewardChoice || 'bills';
+  if (![balance, monthlySpend, monthlyBills, monthlyPayIn, directDebitCount, cardTransactions, linkedSavingsBalance].every(Number.isFinite)
+    || balance < 0 || monthlySpend < 0 || monthlyBills < 0 || monthlyPayIn < 0 || directDebitCount < 0 || cardTransactions < 0 || linkedSavingsBalance < 0) return null;
+
+  const interestBalance = Math.min(balance, terms.balanceInterestCap ?? terms.balanceCap ?? balance);
+  const introMonths = Math.min(12, terms.balanceBonusMonths ?? 0);
+  const baseRate = terms.balanceBaseAER ?? 0;
+  const interestEligible = (terms.balanceAER ?? 0) > 0 && balance > 0 && monthlyPayIn >= (terms.interestRequiresMonthlyPayIn ?? 0);
+  const interest = interestEligible ? interestBalance * ((terms.balanceAER ?? 0) * introMonths / 1200 + baseRate * (12 - introMonths) / 1200) : 0;
+  const cashback = terms.cashbackPrograms.reduce((total, program) => {
+    if (program.choice && program.choice !== rewardChoice) return total;
+    const spend = program.spendSource === 'bills' ? monthlyBills : monthlySpend;
+    if (spend < (program.minimumSpend ?? 0)
+      || directDebitCount < (program.minimumDirectDebits ?? 0)
+      || cardTransactions < (program.minimumCardTransactions ?? 0)
+      || monthlyPayIn < (program.minimumPayIn ?? terms.minimumMonthlyPayIn ?? 0)
+      || linkedSavingsBalance < (program.minimumLinkedSavings ?? 0)) return total;
+    const eligibleSpend = Math.min(spend, program.monthlySpendCap ?? Infinity);
+    const monthlyReward = program.fixedMonthlyCashback ?? Math.min(eligibleSpend * program.rate / 100, program.monthlyCashbackCap ?? Infinity);
+    return total + monthlyReward * 12;
+  }, 0);
+  const linkedSavings = terms.linkedSavings;
+  const linkedSavingsEligible = Boolean(linkedSavings
+    && linkedSavingsBalance >= (linkedSavings.minimumBalance ?? 0)
+    && monthlyPayIn >= (linkedSavings.minimumMonthlyPayIn ?? 0)
+    && directDebitCount >= (linkedSavings.minimumDirectDebits ?? 0));
+  const linkedBalance = linkedSavingsEligible ? Math.min(linkedSavingsBalance, linkedSavings.maximum ?? linkedSavingsBalance) : 0;
+  const linkedIntroMonths = linkedSavingsEligible ? Math.min(12, linkedSavings.bonusMonths ?? 0) : 0;
+  const linkedSavingsInterest = linkedBalance * ((linkedSavingsEligible ? linkedSavings.rate ?? 0 : 0) * linkedIntroMonths / 1200 + (linkedSavingsEligible ? linkedSavings.baseRate ?? 0 : 0) * (12 - linkedIntroMonths) / 1200);
+  const fee = (terms.monthlyFee ?? 0) * 12;
+  const netValue = interest + linkedSavingsInterest + cashback - fee;
+  return { eligible: true, interest, linkedSavingsInterest, cashback, fee, netValue, oneOffSwitchBonus: terms.oneOffSwitchBonus ?? null, interestEligible, linkedSavingsEligible, qualifiedBenefit: interestEligible || cashback > 0 || linkedSavingsEligible, switchBonusNote: terms.switchBonusNote ?? '' };
 }

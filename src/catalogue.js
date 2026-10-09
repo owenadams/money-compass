@@ -4,6 +4,7 @@ const investingGuide = 'https://www.moneysavingexpert.com/savings/stocks-shares-
 const checked = '2026-10-05';
 const cashProtection = 'Eligible deposits: FSCS up to £120,000 per person, per authorised institution. Shared licences count together; verify the named bank before depositing.';
 const investmentProtection = 'No protection against market losses. FSCS investment protection may apply to eligible firm failures, not falling prices. Check the product structure.';
+const currentAccountsGuide = 'https://www.moneysavingexpert.com/banking/compare-best-bank-accounts/';
 
 function product(id, provider, name, category, options) {
   const isa = category.includes('ISAs');
@@ -19,7 +20,73 @@ function product(id, provider, name, category, options) {
   return { id, provider, name, category, risk: 'Cash', rate: null, rateKind: 'AER', minimum: 1, maximum: null, bonusMonths: 12, access: 'Easy access', protection: cashProtection, rateCheckedAt: checked, termsReviewedAt: checked, checkStatus: 'manual', fees: 'No account fee noted in the source; confirm current terms.', reviewUrl: `https://uk.trustpilot.com/search?query=${encodeURIComponent(provider)}`, editorialUrl: category === 'Cash ISAs' ? isaGuide : savingsGuide, ...isaOptions };
 }
 
+function currentAccountProduct(id, provider, name, options) {
+  return {
+    id, provider, name, category: 'Current accounts', risk: 'Cash', rate: null, rateKind: 'Current account rewards', minimum: 0, maximum: null,
+    bonusMonths: 12, access: 'Everyday access', protection: cashProtection, rateCheckedAt: null, termsReviewedAt: '2026-10-08', checkStatus: 'manual',
+    customerEligibility: 'any', appRequired: null, requiresAnotherAccount: false, acceptsTransfers: null,
+    terms: options.currentAccount.eligibilityNotes, summary: options.currentAccount.summary,
+    fees: `£${options.currentAccount.monthlyFee} monthly account fee, plus any charges in the provider's terms.`, editorialUrl: currentAccountsGuide,
+    reviewUrl: `https://uk.trustpilot.com/search?query=${encodeURIComponent(provider)}`,
+    ...options
+  };
+}
+
 export const catalogue = [
+  currentAccountProduct('nationwide-flexdirect', 'Nationwide', 'FlexDirect', {
+    appRequired: false,
+    sourceUrl: 'https://www.nationwide.co.uk/current-accounts/flexdirect/',
+    currentAccount: {
+      balanceAER: 5, balanceBonusMonths: 12, balanceBaseAER: 1, balanceCap: 1500, interestRequiresMonthlyPayIn: 1500, monthlyFee: 0,
+      cashbackPrograms: [
+        { id: 'spend', label: 'Eligible debit-card spending', rate: 1, spendSource: 'spend', minimumSpend: 500, monthlyCashbackCap: 5, minimumPayIn: 1500 },
+        { id: 'bills', label: 'Direct Debit bills', fixedMonthlyCashback: 5, spendSource: 'bills', minimumSpend: 300, minimumDirectDebits: 1, minimumPayIn: 1500 }
+      ],
+      oneOffSwitchBonus: 175,
+      eligibilityNotes: '5% balance interest for 12 months on up to £1,500 requires £1,500 monthly pay-in. £5 monthly debit-card and £5 monthly Direct Debit cashback have separate qualifying requirements. £175 switch offer has separate eligibility and CASS conditions.',
+      overdraft: 'First £50 arranged overdraft interest-free; 39.9% EAR variable above that. Overdraft eligibility and limit are credit-checked.',
+      summary: 'A building-society current account with balance interest and two separate cashback routes. The ongoing return depends on maintaining the monthly pay-in and meeting each reward condition.'
+    }
+  }),
+  currentAccountProduct('chase-current', 'Chase', 'Current account', {
+    appRequired: true, requiresAnotherAccount: true,
+    sourceUrl: 'https://www.chase.co.uk/gb/en/product/chase-account/',
+    currentAccount: {
+      balanceAER: 0, balanceBonusMonths: 0, monthlyFee: 0,
+      cashbackPrograms: [{ id: 'spend', label: 'Eligible card spending', rate: 2, spendSource: 'spend', monthlyCashbackCap: 20, minimumCardTransactions: 15, minimumLinkedSavings: 1000 }],
+      oneOffSwitchBonus: null,
+      eligibilityNotes: '2% cashback applies only to eligible purchase categories, requires 15 or more debit-card transactions a month and at least £1,000 in Chase savings. Cashback capped at £20 a month.',
+      linkedSavings: { name: 'Chase Saver', rate: 4.5, baseRate: 2.25, bonusRate: 2.25, bonusMonths: 12, maximum: 3000000, requiredOpenDays: 31 },
+      overdraft: 'No arranged overdraft.',
+      summary: 'An app-based current account. Its main estimated return here is category-limited debit-card cashback; the linked saver is calculated separately using the linked savings balance you enter.'
+    }
+  }),
+  currentAccountProduct('santander-edge', 'Santander', 'Edge current account', {
+    appRequired: false,
+    sourceUrl: 'https://www.santander.co.uk/personal/current-accounts',
+    currentAccount: {
+      balanceAER: 0, balanceBonusMonths: 0, monthlyFee: 3, minimumMonthlyPayIn: 500,
+      cashbackPrograms: [{ id: 'bills', label: 'Eligible household bills', rate: 1, spendSource: 'bills', monthlyCashbackCap: 10, minimumDirectDebits: 2, minimumPayIn: 500 }],
+      oneOffSwitchBonus: null,
+      eligibilityNotes: '£3 monthly fee. 1% cashback on eligible household bills paid by Direct Debit, up to £10 a month; £500 monthly pay-in and two or more eligible Direct Debits required.',
+      linkedSavings: { name: 'Edge Saver', rate: 6, baseRate: 3.5, bonusRate: 2.5, bonusMonths: 12, maximum: 4000 },
+        linkedSavings: { name: 'Edge Saver', rate: 6, baseRate: 3.5, bonusRate: 2.5, bonusMonths: 12, maximum: 4000, minimumMonthlyPayIn: 500, minimumDirectDebits: 2 },
+      overdraft: '39.94% EAR variable; eligibility and limit are credit-checked.',
+      summary: 'A high-street current account with a fee, household-bill cashback and a linked saver. Cashback only offsets the fee if the eligible bills and account conditions fit your actual usage.'
+    }
+  }),
+  currentAccountProduct('zopa-biscuit', 'Zopa', 'Biscuit current account', {
+    appRequired: true,
+    sourceUrl: currentAccountsGuide,
+    currentAccount: {
+      balanceAER: 0, balanceBonusMonths: 0, monthlyFee: 0,
+      cashbackPrograms: [{ id: 'bills', label: 'Chosen 3% cashback option', rate: 3, spendSource: 'bills', monthlySpendCap: 150 }],
+      oneOffSwitchBonus: null,
+      eligibilityNotes: 'Choose one rewards option at a time. This illustration models the 3% bills-cashback option on up to £150 eligible bills per month (maximum £54 a year). Other reward choices have different eligible spending categories.',
+      overdraft: 'No overdraft included in this comparison; check current product terms.',
+      summary: 'A digital current account. This comparison models the bills-cashback option only; choose and verify the available rewards option before applying.'
+    }
+  }),
   product('cynergy', 'Cynergy Bank', 'Online Easy Access Account', 'Savings', { rate: 4.55, maximum: 1000000, sourceUrl: 'https://www.cynergybank.co.uk/personal/online-easy-access-account', adapter: 'cynergy', terms: 'Variable rate includes a 12-month bonus. Unlimited withdrawals; online management. Check the current issue and bonus before opening.', summary: 'An online savings bank. Worth comparing for unrestricted access, but the introductory bonus needs a calendar reminder.' }),
   product('cahoot', 'Cahoot', 'Sunny Day Saver', 'Savings', { rate: 5, maximum: 3000, sourceUrl: 'https://www.cahoot.com/products-and-services/cahoot-sunny-day-saver', adapter: 'cahoot', terms: 'Up to £3,000 only. Variable rate; the account lasts 12 months. Cahoot is part of Santander, so check shared protection.', summary: 'Santander’s online banking brand. The small balance cap means the headline rate cannot apply to a whole £10,000 lump sum.' }),
   product('zopa', 'Zopa Bank', 'Bonus savings offer', 'Savings', { rate: 4.56, access: 'Limited access', maximum: 50000, sourceUrl: 'https://www.zopa.com/smart-saver', terms: 'New customers; open Smart Saver first. Introductory offer falls to 2% after more than three withdrawals a year. Verify offer availability.', summary: 'A digital bank with app-managed savings. The withdrawal restriction is the key drawback for money you may need often.' }),

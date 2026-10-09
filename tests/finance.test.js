@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assessment, estimateInterest, isStale, selectProducts, switchingComparison, productForFunding } from '../src/finance.js';
+import { assessment, estimateInterest, estimateCurrentAccount, isStale, selectProducts, switchingComparison, productForFunding } from '../src/finance.js';
 import { catalogue } from '../src/catalogue.js';
 
 const now = new Date('2026-10-05T12:00:00Z');
@@ -76,4 +76,44 @@ test('transfer-specific rates replace newbie rates without inheriting automatic 
   assert.equal(productForFunding(product, 'new'), product);
   assert.equal(estimateInterest(productForFunding({ ...product, acceptsTransfers: false }, 'transfer'), 10000), null);
   assert.equal(estimateInterest(productForFunding({ ...product, acceptsTransfers: null }, 'transfer'), 10000), null);
+});
+test('current account annual estimate combines capped interest, qualifying rewards and fees', () => {
+  const flexDirect = { category: 'Current accounts', currentAccount: { balanceAER: 5, balanceBonusMonths: 12, balanceCap: 1500, monthlyFee: 0, minimumMonthlyPayIn: 1500, cashbackPrograms: [{ rate: 1, spendSource: 'spend', monthlySpendCap: 500, monthlyCashbackCap: 5, minimumPayIn: 1500 }, { fixedMonthlyCashback: 5, spendSource: 'bills', minimumSpend: 300, minimumDirectDebits: 2, minimumPayIn: 1500 }], oneOffSwitchBonus: 175 } };
+  const estimate = estimateCurrentAccount(flexDirect, { balance: 2000, monthlySpend: 500, monthlyBills: 300, monthlyPayIn: 1500, directDebitCount: 2, cardTransactions: 0, linkedSavingsBalance: 0 });
+  assert.deepEqual(estimate, { eligible: true, interest: 75, linkedSavingsInterest: 0, cashback: 120, fee: 0, netValue: 195, oneOffSwitchBonus: 175, interestEligible: true, linkedSavingsEligible: false, qualifiedBenefit: true, switchBonusNote: '' });
+});
+test('current account reward estimate subtracts fees and checks every stated requirement', () => {
+  const edge = { category: 'Current accounts', currentAccount: { balanceAER: 0, balanceBonusMonths: 0, monthlyFee: 3, minimumMonthlyPayIn: 500, cashbackPrograms: [{ rate: 1, spendSource: 'bills', monthlySpendCap: Infinity, monthlyCashbackCap: 10, minimumDirectDebits: 2, minimumPayIn: 500 }] } };
+  const qualified = estimateCurrentAccount(edge, { balance: 500, monthlySpend: 0, monthlyBills: 1000, monthlyPayIn: 500, directDebitCount: 2, cardTransactions: 0, linkedSavingsBalance: 0 });
+  assert.equal(qualified.cashback, 120);
+  assert.equal(qualified.fee, 36);
+  assert.equal(qualified.netValue, 84);
+  const notQualified = estimateCurrentAccount(edge, { balance: 500, monthlySpend: 0, monthlyBills: 1000, monthlyPayIn: 0, directDebitCount: 0, cardTransactions: 0, linkedSavingsBalance: 0 });
+  assert.equal(notQualified.cashback, 0);
+  assert.equal(notQualified.netValue, -36);
+  assert.equal(notQualified.interestEligible, false);
+  assert.equal(notQualified.qualifiedBenefit, false);
+});
+test('current account model includes eligible linked-saver interest and ranks by estimated annual value', () => {
+  const chase = catalogue.find(product => product.id === 'chase-current');
+  const input = { balance: 0, monthlySpend: 500, monthlyBills: 0, monthlyPayIn: 0, directDebitCount: 0, cardTransactions: 15, linkedSavingsBalance: 2000 };
+  const estimate = estimateCurrentAccount(chase, input);
+  assert.equal(estimate.cashback, 120);
+  assert.equal(estimate.linkedSavingsInterest, 90);
+  assert.equal(estimate.netValue, 210);
+  const products = [chase, { ...chase, id: 'fee-account', currentAccount: { balanceAER: 0, monthlyFee: 30, cashbackPrograms: [] } }];
+  assert.deepEqual(selectProducts(products, { category: 'Current accounts', sort: 'current-value', amount: 0, currentAccountInputs: input }).map(product => product.id), ['chase-current', 'fee-account']);
+});
+test('current account catalogue is distinct from AER products and discloses fees, bonuses and requirements', () => {
+  const accounts = catalogue.filter(product => product.category === 'Current accounts');
+  assert.equal(accounts.length, 4);
+  assert.ok(accounts.every(product => product.rate === null && product.rateKind === 'Current account rewards' && product.currentAccount));
+  assert.equal(catalogue.find(product => product.id === 'nationwide-flexdirect').currentAccount.oneOffSwitchBonus, 175);
+  assert.equal(catalogue.find(product => product.id === 'santander-edge').currentAccount.monthlyFee, 3);
+  assert.equal(catalogue.find(product => product.id === 'chase-current').currentAccount.cashbackPrograms[0].minimumCardTransactions, 15);
+  assert.ok(selectProducts(accounts, { category: 'Current accounts', unlimitedAccess: true, amount: 0 }).length > 0);
+  const edge = catalogue.find(product => product.id === 'santander-edge');
+  const notEnoughBills = estimateCurrentAccount(edge, { balance: 0, monthlySpend: 0, monthlyBills: 500, monthlyPayIn: 500, directDebitCount: 1, cardTransactions: 0, linkedSavingsBalance: 4000 });
+  assert.equal(notEnoughBills.linkedSavingsEligible, false);
+  assert.equal(notEnoughBills.linkedSavingsInterest, 0);
 });
