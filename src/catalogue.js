@@ -23,7 +23,7 @@ function product(id, provider, name, category, options) {
 function currentAccountProduct(id, provider, name, options) {
   return {
     id, provider, name, category: 'Current accounts', risk: 'Cash', rate: null, rateKind: 'Current account rewards', minimum: 0, maximum: null,
-    bonusMonths: 12, access: 'Everyday access', protection: cashProtection, rateCheckedAt: null, termsReviewedAt: '2026-10-08', checkStatus: 'manual',
+    bonusMonths: 12, access: 'Everyday access', protection: cashProtection, rateCheckedAt: null, termsReviewedAt: '2026-10-13', checkStatus: 'manual',
     customerEligibility: 'any', appRequired: null, requiresAnotherAccount: false, acceptsTransfers: null,
     terms: options.currentAccount.eligibilityNotes, summary: options.currentAccount.summary,
     fees: `£${options.currentAccount.monthlyFee} monthly account fee, plus any charges in the provider's terms.`, editorialUrl: currentAccountsGuide,
@@ -69,8 +69,7 @@ export const catalogue = [
       cashbackPrograms: [{ id: 'bills', label: 'Eligible household bills', rate: 1, spendSource: 'bills', monthlyCashbackCap: 10, minimumDirectDebits: 2, minimumPayIn: 500 }],
       oneOffSwitchBonus: null,
       eligibilityNotes: '£3 monthly fee. 1% cashback on eligible household bills paid by Direct Debit, up to £10 a month; £500 monthly pay-in and two or more eligible Direct Debits required.',
-      linkedSavings: { name: 'Edge Saver', rate: 6, baseRate: 3.5, bonusRate: 2.5, bonusMonths: 12, maximum: 4000 },
-        linkedSavings: { name: 'Edge Saver', rate: 6, baseRate: 3.5, bonusRate: 2.5, bonusMonths: 12, maximum: 4000, minimumMonthlyPayIn: 500, minimumDirectDebits: 2 },
+      linkedSavings: { name: 'Edge Saver', rate: 6, baseRate: 3.5, bonusRate: 2.5, bonusMonths: 12, maximum: 4000, minimumMonthlyPayIn: 500, minimumDirectDebits: 2 },
       overdraft: '39.94% EAR variable; eligibility and limit are credit-checked.',
       summary: 'A high-street current account with a fee, household-bill cashback and a linked saver. Cashback only offsets the fee if the eligible bills and account conditions fit your actual usage.'
     }
@@ -85,6 +84,62 @@ export const catalogue = [
       eligibilityNotes: 'Choose one rewards option at a time. This illustration models the 3% bills-cashback option on up to £150 eligible bills per month (maximum £54 a year). Other reward choices have different eligible spending categories.',
       overdraft: 'No overdraft included in this comparison; check current product terms.',
       summary: 'A digital current account. This comparison models the bills-cashback option only; choose and verify the available rewards option before applying.'
+    }
+  }),
+  currentAccountProduct('hsbc-bank', 'HSBC', 'Bank Account', {
+    appRequired: false, sourceUrl: 'https://www.hsbc.co.uk/current-accounts/products/bank-account/',
+    currentAccount: {
+      balanceAER: 0, monthlyFee: 0, cashbackPrograms: [], oneOffSwitchBonus: 220,
+      eligibilityNotes: 'Switch bonus snapshot: pay in £2,000 and spend £500 on the debit card within 60 days. Offer excludes people who already have or held an HSBC or First Direct current account since 1 January 2023. A full CASS switch and account eligibility apply.',
+      switchBonusEligibility: '£2,000 pay-in and £500 debit-card spend within 60 days; no HSBC or First Direct current account since 1 January 2023; eligible CASS switch.',
+      overdraft: 'Arranged overdraft subject to eligibility and credit check; check the rate offered before borrowing.',
+      summary: 'A fee-free high-street account with a current switch incentive. The £220 is one-off and depends on the switch and spending criteria; it is not recurring account value.'
+    }
+  }),
+  currentAccountProduct('first-direct-1st', 'First Direct', '1st Account', {
+    appRequired: false, sourceUrl: 'https://www.firstdirect.com/banking/current-account/',
+    currentAccount: {
+      balanceAER: 0, monthlyFee: 0, cashbackPrograms: [], oneOffSwitchBonus: 210,
+      eligibilityNotes: 'Switch bonus snapshot: pay in £1,000. Offer excludes anyone who has ever held a First Direct product or opened an HSBC current account since 1 January 2018. Confirm exact switch timing and terms.',
+      switchBonusEligibility: '£1,000 pay-in; never held a First Direct product; no HSBC current account opened since 1 January 2018; eligible CASS switch.',
+      overdraft: 'Many eligible customers may receive up to £250 interest-free; subject to credit check and approval. Interest applies above the offered buffer.',
+      linkedSavingsNote: 'The 7% regular saver is a separate linked product with a monthly contribution limit; its return is not included in this current-account estimate.',
+      summary: 'A telephone and online banking brand with a strong independent customer-service poll result. Its current attraction is the switch offer and possible interest-free overdraft, not ongoing interest on the current-account balance.'
+    }
+  }),
+  currentAccountProduct('barclays-bank', 'Barclays', 'Bank Account', {
+    appRequired: true, sourceUrl: 'https://www.barclays.co.uk/current-accounts/bank-account/',
+    currentAccount: {
+      balanceAER: 0, monthlyFee: 0, cashbackPrograms: [], oneOffSwitchBonus: 300,
+      eligibilityNotes: 'Switch offer snapshot: £150 upfront requires an eligible full switch, 3+ active Direct Debits and £2,000 qualifying salary pay-in. A further £150 is paid as £30 monthly for five months when you make 10 eligible debit-card transactions each month. New-customer and offer exclusions apply.',
+      switchBonusEligibility: '£2,000 qualifying salary pay-in, full CASS switch and 3+ active Direct Debits; 10 eligible card transactions per month for five months to receive the further £150. New customers and terms apply.',
+      overdraft: 'Optional arranged overdraft; application and limit are subject to status and credit assessment.',
+      summary: 'A mainstream high-street account. The switch reward is split into an upfront payment and five later payments; the full £300 depends on maintaining the qualifying activity.'
+    }
+  }),
+  currentAccountProduct('lloyds-club', 'Lloyds Bank', 'Club Lloyds', {
+    appRequired: false, sourceUrl: 'https://www.lloydsbank.com/current-accounts/club-lloyds.html',
+    currentAccount: {
+      balanceAER: 3, balanceBonusMonths: 12, balanceCap: 5000, interestRequiresDirectDebits: 2,
+      monthlyFee: 5, feeWaivedAtPayIn: 2000, minimumMonthlyPayIn: 2000,
+      cashbackPrograms: [], oneOffSwitchBonus: 200,
+      eligibilityNotes: '£5 monthly fee is waived with £2,000 monthly pay-in. 3% AER variable interest on balances up to £5,000 requires two different Direct Debits to be paid each month. Switch offer requires 3 active Direct Debits and an eligible CASS switch. Lifestyle reward is a separate choice and is not assigned a cash value here.',
+      switchBonusEligibility: '£200 switch offer requires a full CASS switch and at least 3 active Direct Debits; historical Lloyds-group exclusions apply.',
+      overdraft: 'Arranged overdraft subject to application. Interest-free buffer and rate after the buffer depend on the offer; check before borrowing.',
+      summary: 'A packaged-features current account with balance interest and a choice of lifestyle perk. The fee waiver and interest have separate conditions, so both need to be checked.'
+    }
+  }),
+  currentAccountProduct('natwest-reward', 'NatWest', 'Reward current account', {
+    appRequired: false, sourceUrl: 'https://www.natwest.com/current-accounts.html',
+    currentAccount: {
+      balanceAER: 0, monthlyFee: 2, minimumMonthlyPayIn: 1250,
+      cashbackPrograms: [{ id: 'bills', label: 'Qualifying Direct Debit reward', fixedMonthlyCashback: 4, spendSource: 'bills', minimumDirectDebits: 2, minimumPayIn: 1250 }],
+      oneOffSwitchBonus: 200,
+      eligibilityNotes: '£2 monthly account fee. £4 monthly reward requires £1,250 monthly pay-in and two qualifying Direct Debits of at least £2 each. Snapshot switch offer is £200 with separate new-customer, account and CASS-switch exclusions.',
+      switchBonusEligibility: '£200 one-off CASS switch offer; previous NatWest-group bonus, account and switch-from-group exclusions apply. Verify full current terms.',
+      overdraft: 'Arranged overdraft is borrowing and subject to credit approval; check the personalised rate and limit.',
+      linkedSavingsNote: 'Linked regular saver products are separate, monthly-limited accounts and are not included in this estimate.',
+      summary: 'A fee-based rewards account. When its £4 monthly Direct Debit reward conditions are met, the stated reward exceeds the £2 fee by £2 a month; the switch bonus is separate.'
     }
   }),
   product('cynergy', 'Cynergy Bank', 'Online Easy Access Account', 'Savings', { rate: 4.55, maximum: 1000000, sourceUrl: 'https://www.cynergybank.co.uk/personal/online-easy-access-account', adapter: 'cynergy', terms: 'Variable rate includes a 12-month bonus. Unlimited withdrawals; online management. Check the current issue and bonus before opening.', summary: 'An online savings bank. Worth comparing for unrestricted access, but the introductory bonus needs a calendar reminder.' }),

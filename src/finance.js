@@ -89,7 +89,9 @@ export function estimateCurrentAccount(product, inputs) {
   const interestBalance = Math.min(balance, terms.balanceInterestCap ?? terms.balanceCap ?? balance);
   const introMonths = Math.min(12, terms.balanceBonusMonths ?? 0);
   const baseRate = terms.balanceBaseAER ?? 0;
-  const interestEligible = (terms.balanceAER ?? 0) > 0 && balance > 0 && monthlyPayIn >= (terms.interestRequiresMonthlyPayIn ?? 0);
+  const interestEligible = (terms.balanceAER ?? 0) > 0 && balance > 0
+    && monthlyPayIn >= (terms.interestRequiresMonthlyPayIn ?? 0)
+    && directDebitCount >= (terms.interestRequiresDirectDebits ?? 0);
   const interest = interestEligible ? interestBalance * ((terms.balanceAER ?? 0) * introMonths / 1200 + baseRate * (12 - introMonths) / 1200) : 0;
   const cashback = terms.cashbackPrograms.reduce((total, program) => {
     if (program.choice && program.choice !== rewardChoice) return total;
@@ -111,7 +113,8 @@ export function estimateCurrentAccount(product, inputs) {
   const linkedBalance = linkedSavingsEligible ? Math.min(linkedSavingsBalance, linkedSavings.maximum ?? linkedSavingsBalance) : 0;
   const linkedIntroMonths = linkedSavingsEligible ? Math.min(12, linkedSavings.bonusMonths ?? 0) : 0;
   const linkedSavingsInterest = linkedBalance * ((linkedSavingsEligible ? linkedSavings.rate ?? 0 : 0) * linkedIntroMonths / 1200 + (linkedSavingsEligible ? linkedSavings.baseRate ?? 0 : 0) * (12 - linkedIntroMonths) / 1200);
-  const fee = (terms.monthlyFee ?? 0) * 12;
+  const monthlyFeeCharged = terms.feeWaivedAtPayIn !== undefined && monthlyPayIn >= terms.feeWaivedAtPayIn ? 0 : terms.monthlyFee ?? 0;
+  const fee = monthlyFeeCharged * 12;
   const netValue = interest + linkedSavingsInterest + cashback - fee;
-  return { eligible: true, interest, linkedSavingsInterest, cashback, fee, netValue, oneOffSwitchBonus: terms.oneOffSwitchBonus ?? null, interestEligible, linkedSavingsEligible, qualifiedBenefit: interestEligible || cashback > 0 || linkedSavingsEligible, switchBonusNote: terms.switchBonusNote ?? '' };
+  return { eligible: true, interest, linkedSavingsInterest, cashback, monthlyFeeCharged, fee, netValue, oneOffSwitchBonus: terms.oneOffSwitchBonus ?? null, switchBonusEligibility: terms.switchBonusEligibility ?? '', interestEligible, linkedSavingsEligible, qualifiedBenefit: interestEligible || cashback > 0 || linkedSavingsEligible, switchBonusNote: terms.switchBonusNote ?? '' };
 }
