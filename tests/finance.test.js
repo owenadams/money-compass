@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assessment, estimateInterest, estimateCurrentAccount, isStale, selectProducts, switchingComparison, productForFunding } from '../src/finance.js';
+import { assessment, estimateInterest, estimateCurrentAccount, estimateCreditCard, isStale, selectProducts, switchingComparison, productForFunding } from '../src/finance.js';
 import { catalogue } from '../src/catalogue.js';
 
 const now = new Date('2026-10-05T12:00:00Z');
@@ -131,4 +131,36 @@ test('Lloyds Club interest and monthly fee waiver depend on the entered Direct D
   assert.equal(unqualified.interest, 0);
   assert.equal(unqualified.monthlyFeeCharged, 5);
   assert.equal(unqualified.netValue, -60);
+});
+test('credit-card comparisons filter purposes and never sort representative APR as a reward yield', () => {
+  const cards = [
+    { id: 'reward', provider: 'Reward', category: 'Credit cards', creditCard: { purposes: ['rewards'], representativeApr: 30 } },
+    { id: 'transfer', provider: 'Transfer', category: 'Credit cards', creditCard: { purposes: ['balance-transfer'], representativeApr: 24 } }
+  ];
+  assert.deepEqual(selectProducts(cards, { category: 'Credit cards', cardPurpose: 'rewards', sort: 'name' }).map(card => card.id), ['reward']);
+  assert.deepEqual(selectProducts(cards, { category: 'Credit cards', sort: 'credit-apr' }).map(card => card.id), ['transfer', 'reward']);
+});
+test('credit-card calculator estimates transfer fees and repayment targets, not approval or post-promo debt interest', () => {
+  const card = { category: 'Credit cards', creditCard: { purposes: ['balance-transfer', 'purchase'], representativeApr: 24.9, balanceTransferMonths: 24, balanceTransferFeePercent: 1.95, purchaseMonths: 12 } };
+  const estimate = estimateCreditCard(card, { monthlySpend: 0, transferAmount: 1000, plannedPurchase: 1200 });
+  assert.equal(estimate.balanceTransferFee, 19.5);
+  assert.equal(estimate.balanceTransferMonthlyTarget, 1019.5 / 24);
+  assert.equal(estimate.purchaseMonthlyTarget, 100);
+  assert.equal(estimate.postPromotionApr, 24.9);
+  assert.equal(estimate.estimatedFirstYearRewards, 0);
+  assert.equal(estimateCreditCard(card, { monthlySpend: -1, transferAmount: 0, plannedPurchase: 0 }), null);
+});
+test('credit-card cashback estimates respect intro-period caps, ongoing rates and annual fees', () => {
+  const card = { category: 'Credit cards', creditCard: { purposes: ['rewards'], rewardRate: 2, rewardSpendCap: 10000, rewardCap: 200, followOnRewardRate: 0.5, firstYearFee: 0 } };
+  const estimate = estimateCreditCard(card, { monthlySpend: 1000, transferAmount: 0, plannedPurchase: 0 });
+  assert.equal(estimate.estimatedFirstYearRewards, 200);
+  assert.equal(estimate.estimatedRewardValueAfterFee, 200);
+});
+test('credit-card catalogue covers multiple purposes without representing APR as AER', () => {
+  const cards = catalogue.filter(product => product.category === 'Credit cards');
+  assert.ok(cards.length > 4);
+  for (const purpose of ['purchase', 'balance-transfer', 'rewards', 'travel', 'credit-builder']) {
+    assert.ok(cards.some(card => card.creditCard.purposes.includes(purpose)), `missing ${purpose} examples`);
+  }
+  assert.ok(cards.every(card => card.rate === null && card.rateKind !== 'AER' && card.creditCard.representativeApr > 0));
 });

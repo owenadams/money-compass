@@ -35,6 +35,63 @@ function currentAccountProduct(id, provider, name, options) {
   };
 }
 
+function creditCardProduct(id, provider, name, creditCard) {
+  const editorialByPurpose = {
+    purchase: 'https://www.moneysavingexpert.com/credit-cards/best-0-credit-cards/',
+    'balance-transfer': 'https://www.moneysavingexpert.com/credit-cards/balance-transfer-credit-cards/',
+    rewards: 'https://www.moneysavingexpert.com/credit-cards/best-credit-card-rewards/',
+    travel: 'https://www.moneysavingexpert.com/credit-cards/travel-credit-cards/',
+    'credit-builder': 'https://www.moneysavingexpert.com/credit-cards/bad-credit-credit-cards/'
+  };
+  return {
+    id, provider, name, category: 'Credit cards', risk: 'Borrowing', rate: null, rateKind: 'Credit card terms', minimum: 0, maximum: null,
+    access: 'Credit agreement', protection: 'Credit cards are borrowing, not deposits; FSCS deposit protection does not apply.',
+    rateCheckedAt: null, termsReviewedAt: '2026-10-13', checkStatus: 'manual', customerEligibility: 'unknown',
+    appRequired: null, requiresAnotherAccount: false, acceptsTransfers: null,
+    sourceUrl: creditCard.providerUrl, editorialUrl: editorialByPurpose[creditCard.purposes[0]],
+    reviewUrl: `https://uk.trustpilot.com/search?query=${encodeURIComponent(provider)}`,
+    summary: creditCard.summary, fees: creditCard.annualFee ? `Annual fee: £${creditCard.annualFee}. Other charges may apply; see provider terms.` : 'No annual fee listed in this snapshot. Other charges may apply; see provider terms.',
+    terms: `${creditCard.offerSummary} Representative APR and promotional eligibility can vary by applicant. Snapshot reviewed 13 October 2026; verify the live offer, eligibility and all fees before applying.`,
+    creditCard
+  };
+}
+
+const creditCards = [
+  ['tesco-purchase', 'Tesco Bank', 'Purchase offer', { purposes: ['purchase'], purchaseMonths: 22, representativeApr: 26.9, summary: 'A supermarket-linked card example with a dated 0% purchase period.' }],
+  ['marks-spencer-purchase', 'M&S Bank', 'Purchase offer', { purposes: ['purchase'], purchaseMonths: 26, representativeApr: 24.9, summary: 'A retailer card example; the longest promotional term may be offered only to selected applicants.' }],
+  ['lloyds-purchase', 'Lloyds Bank', 'Purchase offer', { purposes: ['purchase'], purchaseMonths: 25, representativeApr: 24.9, summary: 'A high-street provider example with a promotional purchase period.' }],
+  ['hsbc-purchase', 'HSBC', 'Purchase offer', { purposes: ['purchase'], purchaseMonths: 24, representativeApr: 24.9, summary: 'A high-street provider example; check the offer and eligibility criteria directly.' }],
+  ['barclaycard-purchase', 'Barclaycard', 'Purchase offer', { purposes: ['purchase'], purchaseMonths: 24, representativeApr: 24.9, summary: 'A specialist card issuer example with a dated promotional purchase term.' }],
+  ['tsb-purchase', 'TSB', 'Purchase offer', { purposes: ['purchase'], purchaseMonths: 26, representativeApr: 24.9, summary: 'A high-street provider example; the advertised maximum promotional term is not guaranteed.' }],
+  ['hsbc-transfer', 'HSBC', 'Balance transfer offer', { purposes: ['balance-transfer'], balanceTransferMonths: 36, balanceTransferFeePercent: 3.09, representativeApr: 24.9, summary: 'A long balance-transfer snapshot with a material one-off transfer fee.' }],
+  ['virgin-transfer', 'Virgin Money', 'Balance transfer offer', { purposes: ['balance-transfer'], balanceTransferMonths: 36, balanceTransferFeePercent: 3.1, representativeApr: 24.9, summary: 'A balance-transfer example; check the exact fee and promotional term offered.' }],
+  ['tesco-transfer', 'Tesco Bank', 'Balance transfer offer', { purposes: ['balance-transfer'], balanceTransferMonths: 35, balanceTransferFeePercent: 3.15, representativeApr: 26.9, summary: 'A balance-transfer example with a dated fee and maximum promotional period.' }],
+  ['capital-one-transfer', 'Capital One', 'Balance transfer offer', { purposes: ['balance-transfer'], balanceTransferMonths: 36, balanceTransferFeePercent: 2.9, representativeApr: 34.9, summary: 'An advertised maximum transfer period can depend on applicant eligibility.' }],
+  ['natwest-transfer', 'NatWest', 'Balance transfer offer', { purposes: ['balance-transfer'], balanceTransferMonths: 36, balanceTransferFeePercent: 3.1, representativeApr: 24.9, summary: 'A balance-transfer example; confirm whether existing-customer restrictions apply.' }],
+  ['barclaycard-transfer', 'Barclaycard', 'Balance transfer offer', { purposes: ['balance-transfer'], balanceTransferMonths: 36, balanceTransferFeePercent: 3.15, representativeApr: 24.9, summary: 'A longer transfer offer snapshot with a fee; promotional terms vary by applicant.' }],
+  ['barclaycard-no-fee-transfer', 'Barclaycard', 'No-fee balance transfer offer', { purposes: ['balance-transfer'], balanceTransferMonths: 12, balanceTransferFeePercent: 0, representativeApr: 24.9, summary: 'A shorter no-fee balance-transfer option to compare against longer offers with fees.' }],
+  ['virgin-low-fee-transfer', 'Virgin Money', 'Low-fee balance transfer offer', { purposes: ['balance-transfer'], balanceTransferMonths: 24, balanceTransferFeePercent: 1.95, representativeApr: 24.9, summary: 'A lower-fee, shorter promotional option; compare total fee and realistic repayment time.' }],
+  ['amex-everyday-cashback', 'American Express', 'Cashback Everyday', { purposes: ['rewards'], rewardRate: 2, rewardSpendCap: 10000, rewardCap: 200, followOnRewardRate: 0.75, representativeApr: 31.0, annualFee: 0, offerSummary: 'Snapshot: 2% cashback during the introductory year, capped at £200; then tiered ongoing cashback rates may apply.', summary: 'Cashback can be valuable only when the statement is repaid in full; acceptance and eligibility are not guaranteed.' }],
+  ['lloyds-ultra', 'Lloyds Bank', 'Ultra credit card', { purposes: ['rewards', 'travel'], rewardRate: 1, followOnRewardRate: 0.25, representativeApr: 16.9, annualFee: 0, offerSummary: 'Snapshot: 1% cashback in the first year, then 0.25%.', summary: 'A no-fee cashback and travel-spend example; check foreign-use and cash-withdrawal charges.' }],
+  ['amex-gold', 'American Express', 'Preferred Rewards Gold', { purposes: ['rewards', 'travel'], representativeApr: 29.4, annualFee: 195, firstYearFee: 0, offerSummary: 'Snapshot: 23,000 introductory points may be available after £3,000 eligible spend; the £195 annual fee applies after the first year. Point value depends on redemption.', summary: 'Points are not cash and their value depends on redemption. The fee and qualifying spend can outweigh benefits.' }],
+  ['santander-rewards', 'Santander', 'Everyday Rewards credit card', { purposes: ['rewards'], rewardRate: 3, rewardSpendCap: 5000, followOnRewardRate: 0.25, representativeApr: 23.9, annualFee: 0, offerSummary: 'Snapshot: 3% on eligible spend in the first year, then 0.25%; voucher rewards have separate conditions.', summary: 'Eligible-spend categories, reward limits and voucher conditions matter; do not count rewards as guaranteed cash.' }],
+  ['amex-cashback', 'American Express', 'Cashback credit card', { purposes: ['rewards'], rewardRate: 5, rewardSpendCap: 2500, followOnRewardRate: 0.75, representativeApr: 31.0, annualFee: 25, firstYearFee: 0, offerSummary: 'Snapshot: introductory cashback up to a spend cap, followed by tiered rates; a £25 annual fee may apply after year one.', summary: 'Compare the annual fee and spend caps with realistic eligible purchases; repay in full to avoid interest.' }],
+  ['amazon-barclaycard', 'Barclaycard', 'Amazon Barclaycard', { purposes: ['rewards'], rewardRate: 1, followOnRewardRate: 0.5, representativeApr: 28.9, annualFee: 0, offerSummary: 'Snapshot: Amazon rewards on Amazon purchases and a lower rate elsewhere; rates depend on account and purchase type.', summary: 'Rewards are most useful for eligible purchases and have no value if interest charges exceed them.' }],
+  ['barclaycard-rewards', 'Barclaycard', 'Rewards credit card', { purposes: ['rewards', 'travel'], rewardRate: 0.25, representativeApr: 28.9, annualFee: 0, offerSummary: 'Snapshot: 0.25% cashback on eligible spending; check foreign transaction and cash withdrawal terms.', summary: 'A low-rate cashback example often considered for travel spending; check live foreign-use charges and exclusions.' }],
+  ['mbna-cashback', 'MBNA', 'Cashback credit card', { purposes: ['rewards'], rewardRate: 0.25, representativeApr: 24.9, annualFee: 0, offerSummary: 'Snapshot: 0.25% cashback on eligible purchases.', summary: 'A straightforward low-rate cashback example; rewards do not justify carrying interest-bearing debt.' }],
+  ['mbna-travel-cashback', 'MBNA', 'Travel cashback card', { purposes: ['travel', 'rewards'], rewardRate: 0.25, representativeApr: 24.9, annualFee: 0, offerSummary: 'Snapshot: cashback on eligible spending; foreign transaction and cash withdrawal charges must be checked separately.', summary: 'Travel suitability depends on the live foreign-use fees, not the cashback rate alone.' }],
+  ['tesco-foundation', 'Tesco Bank', 'Foundation credit card', { purposes: ['credit-builder'], representativeApr: 29.9, annualFee: 0, offerSummary: 'Credit-builder card example; no approval or credit-score improvement is guaranteed.', summary: 'A high APR makes carrying a balance expensive. Eligibility is not guaranteed and responsible use does not promise a score increase.' }],
+  ['asda-select', 'Asda Money', 'Select credit card', { purposes: ['credit-builder'], representativeApr: 34.9, annualFee: 0, offerSummary: 'Credit-builder card example; terms and APR depend on the offer and applicant.', summary: 'Consider only if eligible and able to repay in full; a high APR can make borrowing costly.' }],
+  ['post-office-builder', 'Post Office', 'Classic credit card', { purposes: ['credit-builder'], representativeApr: 39.9, annualFee: 0, offerSummary: 'Credit-builder card example with a high representative APR; approval is not guaranteed.', summary: 'A high-APR card can become expensive quickly if any balance is carried. It does not guarantee a credit-score improvement.' }]
+].map(([id, provider, name, terms]) => creditCardProduct(id, provider, name, {
+  representativeApr: terms.representativeApr, annualFee: terms.annualFee ?? 0, firstYearFee: terms.firstYearFee,
+  purchaseMonths: terms.purchaseMonths, balanceTransferMonths: terms.balanceTransferMonths,
+  balanceTransferFeePercent: terms.balanceTransferFeePercent, rewardRate: terms.rewardRate,
+  rewardSpendCap: terms.rewardSpendCap, rewardCap: terms.rewardCap, followOnRewardRate: terms.followOnRewardRate,
+  purposes: terms.purposes, summary: terms.summary, offerSummary: terms.offerSummary ?? `${terms.purchaseMonths ?? terms.balanceTransferMonths ?? 'Current'} month promotional offer snapshot; confirm live terms.`,
+  providerUrl: terms.purposes.includes('purchase') ? 'https://www.moneysavingexpert.com/credit-cards/best-0-credit-cards/' : terms.purposes.includes('balance-transfer') ? 'https://www.moneysavingexpert.com/credit-cards/balance-transfer-credit-cards/' : terms.purposes.includes('travel') ? 'https://www.moneysavingexpert.com/credit-cards/travel-credit-cards/' : terms.purposes.includes('credit-builder') ? 'https://www.moneysavingexpert.com/credit-cards/bad-credit-credit-cards/' : 'https://www.moneysavingexpert.com/credit-cards/best-credit-card-rewards/'
+}));
+
 export const catalogue = [
   currentAccountProduct('nationwide-flexdirect', 'Nationwide', 'FlexDirect', {
     appRequired: false,
@@ -145,6 +202,7 @@ export const catalogue = [
       summary: 'A fee-based rewards account. When its £4 monthly Direct Debit reward conditions are met, the stated reward exceeds the £2 fee by £2 a month; the switch bonus is separate.'
     }
   }),
+  ...creditCards,
   product('cynergy', 'Cynergy Bank', 'Online Easy Access Account', 'Savings', { rate: 4.55, maximum: 1000000, sourceUrl: 'https://www.cynergybank.co.uk/personal/online-easy-access-account', adapter: 'cynergy', terms: 'Variable rate includes a 12-month bonus. Unlimited withdrawals; online management. Check the current issue and bonus before opening.', summary: 'An online savings bank. Worth comparing for unrestricted access, but the introductory bonus needs a calendar reminder.' }),
   product('cahoot', 'Cahoot', 'Sunny Day Saver', 'Savings', { rate: 5, maximum: 3000, sourceUrl: 'https://www.cahoot.com/products-and-services/cahoot-sunny-day-saver', adapter: 'cahoot', terms: 'Up to £3,000 only. Variable rate; the account lasts 12 months. Cahoot is part of Santander, so check shared protection.', summary: 'Santander’s online banking brand. The small balance cap means the headline rate cannot apply to a whole £10,000 lump sum.' }),
   product('zopa', 'Zopa Bank', 'Bonus savings offer', 'Savings', { rate: 4.56, access: 'Limited access', maximum: 50000, sourceUrl: 'https://www.zopa.com/smart-saver', terms: 'New customers; open Smart Saver first. Introductory offer falls to 2% after more than three withdrawals a year. Verify offer availability.', summary: 'A digital bank with app-managed savings. The withdrawal restriction is the key drawback for money you may need often.' }),
