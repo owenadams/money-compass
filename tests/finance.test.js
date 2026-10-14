@@ -114,6 +114,7 @@ test('current account catalogue is distinct from AER products and discloses fees
   assert.equal(catalogue.find(product => product.id === 'hsbc-bank').currentAccount.oneOffSwitchBonus, 220);
   assert.equal(catalogue.find(product => product.id === 'first-direct-1st').currentAccount.oneOffSwitchBonus, 210);
   assert.equal(catalogue.find(product => product.id === 'barclays-bank').currentAccount.oneOffSwitchBonus, 300);
+  assert.match(catalogue.find(product => product.id === 'hsbc-bank').terms, /Switch-offer eligibility:.*£2,000 pay-in/);
   assert.ok(selectProducts(accounts, { category: 'Current accounts', unlimitedAccess: true, amount: 0 }).length > 0);
   const edge = catalogue.find(product => product.id === 'santander-edge');
   const notEnoughBills = estimateCurrentAccount(edge, { balance: 0, monthlySpend: 0, monthlyBills: 500, monthlyPayIn: 500, directDebitCount: 1, cardTransactions: 0, linkedSavingsBalance: 4000 });

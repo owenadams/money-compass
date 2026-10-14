@@ -25,7 +25,7 @@ function currentAccountProduct(id, provider, name, options) {
     id, provider, name, category: 'Current accounts', risk: 'Cash', rate: null, rateKind: 'Current account rewards', minimum: 0, maximum: null,
     bonusMonths: 12, access: 'Everyday access', protection: cashProtection, rateCheckedAt: null, termsReviewedAt: '2026-10-13', checkStatus: 'manual',
     customerEligibility: 'any', appRequired: null, requiresAnotherAccount: false, acceptsTransfers: null,
-    terms: options.currentAccount.eligibilityNotes, summary: options.currentAccount.summary,
+    terms: `${options.currentAccount.eligibilityNotes}${options.currentAccount.switchBonusEligibility ? ` Switch-offer eligibility: ${options.currentAccount.switchBonusEligibility}` : ''}`, summary: options.currentAccount.summary,
     fees: `£${options.currentAccount.monthlyFee} monthly account fee, plus any charges in the provider's terms.`, editorialUrl: currentAccountsGuide,
     reviewUrl: `https://uk.trustpilot.com/search?query=${encodeURIComponent(provider)}`,
     ...options
