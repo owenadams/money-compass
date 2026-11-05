@@ -15,6 +15,43 @@ export function estimateInterest(product, amount) {
   return amount * product.rate / 100;
 }
 
+export function estimateSavingsTax(gross, profile = {}) {
+  if (!Number.isFinite(gross) || gross < 0 || !profile.enabled) return null;
+  const bands = { basic: [0.2, 1000], higher: [0.4, 500], additional: [0.45, 0], low: [0.2, 1000] };
+  const band = bands[profile.band];
+  if (!band || profile.otherInterest === '' || profile.otherInterest == null) return null;
+  const otherInterest = Number(profile.otherInterest);
+  if (!Number.isFinite(otherInterest) || otherInterest < 0) return null;
+  let allowance = band[1];
+  if (profile.band === 'low') {
+    if (profile.income === '' || profile.income == null) return null;
+    const income = Number(profile.income);
+    if (!Number.isFinite(income) || income < 0 || income >= 17570 || income + otherInterest + gross > 50270) return null;
+    allowance += Math.max(0, 12570 - income) + Math.max(0, 5000 - Math.max(0, income - 12570));
+  }
+  const remainingAllowance = Math.max(0, allowance - otherInterest);
+  const tax = Math.max(0, gross - remainingAllowance) * band[0];
+  return { tax, net: gross - tax, remainingAllowance };
+}
+
+export function estimateCashReturn(product, amount, profile = {}, funding = 'new') {
+  const gross = estimateInterest(product, amount);
+  if (!['Savings', 'Cash ISAs'].includes(product.category) || gross === null) return { gross, tax: null, net: null, reason: 'No eligible cash-interest estimate.' };
+  if (product.category === 'Cash ISAs') {
+    if (funding === 'transfer' && product.acceptsTransfers !== true) return { gross, tax: null, net: null, reason: 'ISA transfer eligibility needs checking.' };
+    if (funding !== 'transfer') {
+      const used = profile.isaUsed === '' || profile.isaUsed == null ? null : Number(profile.isaUsed);
+      if (used !== null && (!Number.isFinite(used) || used < 0 || used > 20000)) return { gross, tax: null, net: null, reason: 'Enter valid ISA subscriptions for 2026/27.' };
+      if (amount > 20000 - (used ?? 0)) return { gross, tax: null, net: null, reason: 'New money exceeds your remaining 2026/27 ISA allowance. No whole-balance estimate; compare a smaller amount or an eligible ISA transfer.' };
+      if (profile.enabled && used === null) return { gross, tax: null, net: null, reason: 'Enter ISA subscriptions already made this tax year (0 if none).' };
+    }
+    return { gross, tax: 0, net: gross, reason: 'Tax-free interest, subject to ISA eligibility and funding rules.' };
+  }
+  const estimate = estimateSavingsTax(gross, profile);
+  return estimate ? { gross, ...estimate, reason: 'Illustrative tax at your selected savings tax band; shared allowances reduced by other interest.' }
+    : { gross, tax: null, net: null, reason: profile.enabled ? 'Complete the tax assumptions; low-income estimates outside the supported range are unavailable.' : 'Before tax · your tax position is unknown.' };
+}
+
 export function switchingComparison(products, amount, currentRate, now = new Date(), category = 'Savings') {
   const candidates = products.filter(product => product.category === category && product.access === 'Easy access' && product.checkStatus === 'verified' && !product.termsChanged && !isStale(product.rateCheckedAt, now))
     .map(product => ({ product, interest: estimateInterest(product, amount) }))
@@ -53,7 +90,7 @@ export function matchesEligibility(product, filters) {
 }
 
 export function selectProducts(products, filters, now = new Date()) {
-  return products.filter(product => (!filters.category || product.category === filters.category)
+  return products.filter(product => (!filters.category || product.category === filters.category || filters.category === 'Savings & cash ISAs' && ['Savings', 'Cash ISAs'].includes(product.category))
     && (!filters.access || product.access === filters.access)
     && (!filters.savedOnly || filters.saved.includes(product.id))
     && matchesEligibility(product, filters)
@@ -61,6 +98,10 @@ export function selectProducts(products, filters, now = new Date()) {
     .map(product => productForFunding(product, filters.funding))
     .sort((first, second) => {
       if (filters.sort === 'name') return first.provider.localeCompare(second.provider);
+      if (filters.sort === 'after-tax') {
+        const net = product => estimateCashReturn(product, filters.amount, filters.taxProfile, filters.funding).net ?? -Infinity;
+        return net(second) - net(first) || first.provider.localeCompare(second.provider);
+      }
       if (filters.category === 'Current accounts') {
         const value = product => estimateCurrentAccount(product, filters.currentAccountInputs || { balance: filters.amount ?? 0, monthlySpend: 0, monthlyBills: 0, monthlyPayIn: 0, directDebitCount: 0, cardTransactions: 0, linkedSavingsBalance: 0 })?.netValue ?? -Infinity;
         return value(second) - value(first) || first.provider.localeCompare(second.provider);

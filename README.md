@@ -6,6 +6,20 @@ Website: [owenadams.github.io/money-compass](https://owenadams.github.io/money-c
 
 ## Comparisons and calculations
 
+### Savings and ISA tax comparison
+
+The default combined **Savings & cash ISAs** view keeps investments separate. Cash ISA results are labelled tax-free; ordinary savings say interest may be taxable, since allowances can cover it. With **Include estimated tax** off, taxable savings remain explicitly before tax with an unknown tax position. Enabling it defaults cash comparisons to estimated after-tax interest in pounds; gross AER and a gross-interest / estimated-tax / net-interest breakdown remain visible. Side-by-side uses the same calculation. Source freshness, access restrictions, fees and penalties still need checking.
+
+2026/27 assumptions, checked against [HMRC savings allowances](https://www.gov.uk/apply-tax-free-interest-on-savings/how-much-is-tax-free) and [ISA rules](https://www.gov.uk/individual-savings-accounts) on 5 November 2026:
+
+- Select a savings tax band including interest: basic 20% / £1,000 Personal Savings Allowance, higher 40% / £500, or additional 45% / £0. Other taxable interest consumes that shared allowance first. Enter your own share of joint interest; exclude ISA interest and the comparison balance's interest. Each product is an alternative, not a simultaneous allocation. The tax shown is the estimated additional tax on that alternative's interest, not total tax on other accounts.
+- Low-income mode additionally models unused standard £12,570 Personal Allowance and a starting rate of up to £5,000, reduced pound-for-pound by other non-savings income above £12,570. It requires income below £17,570, assumes no dividends or special reliefs and rejects totals above £50,270. It is not a general income-tax calculator.
+- Ordinary fixed-band estimates assume all taxable interest above remaining allowances stays at the chosen rate. They do not model band crossings, Personal Allowance tapering, tax on dividends, special allowances or complex circumstances. Savings income can change your tax band and allowance: use HMRC for a full calculation. Unknown or invalid inputs do not produce a taxable-savings net estimate.
+- New ISA money is checked against £20,000 less subscriptions already made across ISA types in 2026/27, assuming ordinary subscriptions without flexible-ISA replacement adjustments. When tax mode is on, prior subscriptions must be supplied (0 if none) for an eligible whole-balance ISA estimate. Official existing-ISA transfers do not consume a new allowance; transfer mode requires stated acceptance and uses the dated transfer-specific rate where available. Over-limit new subscriptions have no whole-balance net estimate, rather than silently treating a portion as tax-free.
+- A full-year interest illustration is not a current-tax-year forecast. It assumes the same tax rules/allowances apply to the illustrated year, ignores payment timing and future rule changes, and does not model tax reducing reinvestment. For comparison with your current AER, choose ordinary savings or a cash ISA explicitly.
+
+Tax inputs are held in browser-tab memory only, not saved in local storage, uploaded, committed or used in Telegram. Current-account rewards, borrowing, prize draws and investments are outside this tax calculator.
+
 There are 18 selected savings accounts and 13 cash ISAs, including Tesco Bank, Trading 212, Chase, Starling, Post Office and NatWest. This is not an exhaustive market list.
 
 Current accounts are a separate category with nine examples, including HSBC, First Direct, Barclays, Lloyds Club and NatWest Reward. Their estimate uses the entered balance, monthly pay-in, eligible card spending, bills, Direct Debit count, card transactions and linked-saver balance to calculate qualifying interest and rewards minus account fees. One-off switching offers are displayed separately and are not counted as ongoing value. Overdraft interest is disclosed but never treated as a reward or included in the estimate. Current-account terms are dated 13 October 2026 and require confirmation before applying.

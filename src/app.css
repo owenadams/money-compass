@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 :root { font-family: 'Public Sans', sans-serif; color: #202b27; background: #fafcfb; font-synthesis: none; --green: #186647; --mint: #eaf4ed; --line: #e1e7e3; --muted: #66726c; --coral: #b9513e; --amber: #8d5a0b; letter-spacing: 0; }
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; }
+body { margin: 0; min-width: 0; }
 button, input, select { font: inherit; }
 button, select, summary { cursor: pointer; }
 button { border: 0; }
@@ -209,4 +209,18 @@ input[type="checkbox"] { accent-color: var(--green); width: 18px; height: 18px; 
 @media (max-width: 700px) { .credit-card-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 420px) { .current-account-inputs { grid-template-columns: 1fr; } }
 @media (max-width: 420px) { .credit-card-inputs { grid-template-columns: 1fr; } }
+.tax-panel { border-bottom: 1px solid var(--line); padding: 22px 0; }
+.tax-panel h2 { font-size: 18px; margin-bottom: 8px; }
+.tax-panel p { font-size: 12px; line-height: 1.7; color: var(--muted); }
+.tax-panel .fine-print { font-size: 11px; margin-top: 12px; }
+.tax-panel .notice { margin: 16px 0; color: #725010; }
+.tax-panel > a { display: inline-flex; gap: 5px; font-size: 12px; margin: 0 20px 8px 0; }
+.tax-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.tax-inputs label { display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; font-size: 12px; line-height: 1.5; min-width: 0; }
+.tax-inputs input { width: 100%; min-width: 0; height: 42px; border: 1px solid var(--line); border-radius: 5px; padding: 10px; background: white; color: #202b27; }
+.tax-inputs input:invalid { border-color: var(--coral); }
+.return-line .tax-label { color: var(--green); font-weight: 600; flex-basis: 100%; }
+.return-line small { line-height: 1.6; }
+@media (max-width: 700px) { .tax-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 440px) { .tax-inputs { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

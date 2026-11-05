@@ -1,10 +1,76 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assessment, estimateInterest, estimateCurrentAccount, estimateCreditCard, isStale, selectProducts, switchingComparison, productForFunding } from '../src/finance.js';
+import { assessment, estimateInterest, estimateSavingsTax, estimateCashReturn, estimateCurrentAccount, estimateCreditCard, isStale, selectProducts, switchingComparison, productForFunding } from '../src/finance.js';
 import { catalogue } from '../src/catalogue.js';
 
 const now = new Date('2026-10-05T12:00:00Z');
 const account = { id: 'test', provider: 'Test', category: 'Savings', risk: 'Cash', rate: 4.5, rateKind: 'AER', rateCheckedAt: '2026-10-05', access: 'Easy access', minimum: 1, maximum: 100000, bonusMonths: 12 };
+
+test('tax estimates share allowances across savings and never assume an unknown tax band', () => {
+  assert.equal(estimateSavingsTax(500), null);
+  assert.equal(estimateSavingsTax(500, { enabled: true, band: 'basic', otherInterest: '' }), null);
+  assert.equal(estimateSavingsTax(500, { enabled: true, band: 'basic', otherInterest: 0 }).tax, 0);
+  assert.equal(estimateSavingsTax(500, { enabled: true, band: 'basic', otherInterest: 1000 }).tax, 100);
+  assert.equal(estimateSavingsTax(500, { enabled: true, band: 'higher', otherInterest: 400 }).tax, 160);
+  assert.equal(estimateSavingsTax(500, { enabled: true, band: 'additional', otherInterest: 0 }).tax, 225);
+  assert.equal(estimateSavingsTax(500, { enabled: true, band: 'basic', otherInterest: -1 }), null);
+});
+test('low income includes unused personal allowance and reduced starting rate, but rejects unsupported scenarios', () => {
+  const profile = { enabled: true, band: 'low', income: 16000, otherInterest: 2000 };
+  assert.equal(estimateSavingsTax(1000, profile).tax, 86);
+  assert.equal(estimateSavingsTax(10000, { ...profile, income: 10000, otherInterest: 0 }).tax, 286);
+  assert.equal(estimateSavingsTax(500, { ...profile, income: '' }), null);
+  assert.equal(estimateSavingsTax(500, { ...profile, income: 17570 }), null);
+  assert.equal(estimateSavingsTax(60000, profile), null);
+});
+test('cash ISA tax and funding limits remain distinct from savings allowances and existing ISA transfers', () => {
+  const isa = { ...account, category: 'Cash ISAs', maximum: null, acceptsTransfers: true };
+  const profile = { enabled: true, band: 'additional', otherInterest: 0, isaUsed: 15000 };
+  assert.equal(estimateCashReturn(isa, 5000, profile).tax, 0);
+  assert.equal(estimateCashReturn(isa, 10000, profile).net, null);
+  assert.equal(estimateCashReturn(isa, 30000, profile, 'transfer').net, 1350);
+  assert.equal(estimateCashReturn({ ...isa, acceptsTransfers: null }, 30000, profile, 'transfer').net, null);
+  assert.equal(estimateCashReturn(isa, 10000, { ...profile, isaUsed: '' }).net, null);
+  assert.equal(estimateCashReturn(isa, 10000).tax, 0);
+});
+test('combined comparison ranks alternatives by pounds after tax without leaking investments into cash', () => {
+  const savings = { ...account, rate: 5 };
+  const isa = { ...account, id: 'isa', provider: 'ISA', category: 'Cash ISAs' };
+  const products = [savings, isa, { ...account, id: 'investment', category: 'Stocks & shares ISAs' }];
+  const filters = { category: 'Savings & cash ISAs', amount: 10000, sort: 'after-tax', taxProfile: { enabled: true, band: 'basic', otherInterest: 1000, isaUsed: 0 } };
+  assert.deepEqual(selectProducts(products, filters).map(product => product.id), ['isa', 'test']);
+  assert.deepEqual(selectProducts(products, { ...filters, taxProfile: { ...filters.taxProfile, otherInterest: 0 } }).map(product => product.id), ['test', 'isa']);
+});
+
+test('tax allowance boundaries, invalid inputs and disabled estimates fail predictably', () => {
+  const profile = { enabled: true, band: 'basic', otherInterest: 0 };
+  assert.equal(estimateSavingsTax(1000, profile).tax, 0);
+  assert.equal(estimateSavingsTax(1001, profile).tax, 0.2);
+  assert.equal(estimateSavingsTax(501, { ...profile, band: 'higher' }).tax, 0.4);
+  assert.equal(estimateSavingsTax(500, { ...profile, enabled: false }), null);
+  for (const otherInterest of [NaN, Infinity, -1, null]) assert.equal(estimateSavingsTax(500, { ...profile, otherInterest }), null);
+  assert.equal(estimateSavingsTax(500, { ...profile, band: 'unknown' }), null);
+  assert.equal(estimateSavingsTax(-500, profile), null);
+});
+
+test('low income starting rate reduces pound for pound and combines with unused personal allowance', () => {
+  const profile = { enabled: true, band: 'low', otherInterest: 0, income: 12570 };
+  assert.equal(estimateSavingsTax(6000, profile).tax, 0);
+  assert.equal(estimateSavingsTax(6001, profile).tax, 0.2);
+  assert.equal(estimateSavingsTax(6000, { ...profile, income: 12571 }).tax, 0.2);
+  assert.equal(estimateSavingsTax(18570, { ...profile, income: 0 }).tax, 0);
+  assert.equal(estimateSavingsTax(18571, { ...profile, income: 0 }).tax, 0.2);
+});
+
+test('after-tax sorting places ineligible and unknown estimates last and uses transfer-specific rates', () => {
+  const isa = { ...account, id: 'isa', provider: 'ISA', category: 'Cash ISAs', maximum: null, acceptsTransfers: true, transferRate: 3, termsReviewedAt: '2026-10-05' };
+  const filters = { category: 'Savings & cash ISAs', sort: 'after-tax', amount: 10000, taxProfile: { enabled: true, band: 'basic', otherInterest: 1000, isaUsed: 15000 } };
+  assert.deepEqual(selectProducts([isa, account], filters).map(product => product.id), ['test', 'isa']);
+  const transferred = selectProducts([isa, account], { ...filters, funding: 'transfer' });
+  assert.deepEqual(transferred.map(product => product.id), ['isa']);
+  assert.equal(estimateCashReturn(transferred[0], 10000, filters.taxProfile, 'transfer').net, 300);
+  assert.equal(estimateCashReturn(isa, 10000, { enabled: true, isaUsed: NaN }).net, null);
+});
 
 test('withdrawal restrictions cannot receive easy-access assessment', () => {
   assert.equal(assessment(account, 10000, now).label, 'Worth comparing');
